@@ -16,11 +16,11 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "grunt": "~0.4.0",
+    "grunt": "~1.0",
     "grunt-cli": "~0.1.13",
-    "grunt-contrib-jshint": "~0.1.1",
-    "grunt-includes": "^0.5.1",
-    "grunt-shell": "~0.2.1",
-    "grunt-template": "^0.2.3"
+    "grunt-contrib-jshint": "~2.0",
+    "grunt-includes": "~1.0",
+    "grunt-shell": "~3.0",
+    "grunt-template": "~1.0"
   }
 }
