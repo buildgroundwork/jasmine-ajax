@@ -2,7 +2,6 @@ src_dir: src
 
 src_files:
     - global.js
-    - requireAjax.js
     - '[^bg]*.js' # global.js goes first; boot.js goes last
     - boot.js
 

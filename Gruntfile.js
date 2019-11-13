@@ -35,7 +35,6 @@ module.exports = function( grunt ) {
                 return {
                     packageVersion: packageVersion(),
                     files: grunt.file.expand([
-                        'src/requireAjax.js',
                         'src/**/*.js',
                         '!src/boot.js',
                         '!src/global.js'
