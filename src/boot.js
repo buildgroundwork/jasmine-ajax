@@ -31,25 +31,37 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 //Module wrapper to support both browser and CommonJS environment
-(function (root, factory) {
-    // if (typeof exports === 'object' && typeof exports.nodeName !== 'string') {
-        // // CommonJS
-        // var jasmineRequire = require('jasmine-core');
-        // module.exports = factory(root, function() {
-            // return jasmineRequire;
-        // });
-    // } else {
-        // Browser globals
-        window.MockAjax = factory(root, getJasmineRequireObj);
-    // }
-}(typeof window !== 'undefined' ? window : global, function (global, getJasmineRequireObj) {
+(function (factory) {
+  'use strict';
+
+  const root = determineGlobal(this);
+
+  if (typeof module !== 'undefined' && module.exports && typeof exports !== 'undefined') {
+    const jasmineRequire = require('jasmine-core/lib/jasmine-core/jasmine.js');
+    module.exports = factory(root, function() { return jasmineRequire; });
+  } else {
+    root.MockAjax = factory(root, root.getJasmineRequireObj);
+  }
+
+  function determineGlobal(self) {
+    if (typeof global !== 'undefined') {
+      return global;
+    } else if (typeof window !== 'undefined') {
+      return window;
+    } else {
+      return self;
+    }
+  }
+}(function (global, getJasmineRequireObj) {
+  'use strict';
 
 // <% files.forEach(function(filename) { %>
 //  include "<%= filename %>";<% }); %>
 
-    var jRequire = getJasmineRequireObj();
-    var MockAjax = jRequire.ajax(jRequire);
+    const jRequire = getJasmineRequireObj()
+      , MockAjax = jRequire.ajax(jRequire);
     jasmine.Ajax = new MockAjax(global);
 
     return MockAjax;
 }));
+
