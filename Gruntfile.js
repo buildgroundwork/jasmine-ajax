@@ -13,33 +13,7 @@ module.exports = function( grunt ) {
     // specifying JSHint options and globals
     // https://github.com/cowboy/grunt/blob/master/docs/task_lint.md#specifying-jshint-options-and-globals
     jshint: {
-      options: {
-        boss: true,
-        browser: true,
-        curly: true,
-        eqeqeq: true,
-        eqnull: true,
-        immed: true,
-        latedef: true,
-        newcap: true,
-        noarg: true,
-        sub: true,
-        undef: true,
-        globals: {
-          global: true,
-          jasmine: false,
-          module: false,
-          exports: true,
-          describe: false,
-          it: false,
-          expect: false,
-          beforeEach: false,
-          afterEach: false,
-          spyOn: false,
-          getJasmineRequireObj: false,
-          require: false
-        }
-      },
+      options: { jshintrc: true },
       all: ['Gruntfile.js', 'src/**/*.js', 'lib/**/*.js', 'spec/**/*.js']
     },
     packageVersion: packageVersion(),
