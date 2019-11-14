@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect */
+
 describe('EventBus', function() {
+  'use strict';
+
   beforeEach(function() {
     var event = this.event = jasmine.createSpyObj('event', [
       'preventDefault',
@@ -100,3 +104,4 @@ describe('EventBus', function() {
     expect(callback2).not.toHaveBeenCalled();
   });
 });
+

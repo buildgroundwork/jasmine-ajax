@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe('StubTracker', function() {
+  'use strict';
+
   beforeEach(function() {
     var Constructor = mockAjaxRequire.AjaxStubTracker();
     this.tracker = new Constructor();
@@ -59,3 +63,4 @@ describe('StubTracker', function() {
     expect(this.tracker.findStub()).toBe(stub2);
   });
 });
+

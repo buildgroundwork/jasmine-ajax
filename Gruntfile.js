@@ -14,7 +14,7 @@ module.exports = function( grunt ) {
     // https://github.com/cowboy/grunt/blob/master/docs/task_lint.md#specifying-jshint-options-and-globals
     jshint: {
       options: { jshintrc: true },
-      all: ['Gruntfile.js', 'src/**/*.js', 'lib/**/*.js', 'spec/**/*.js']
+      all: ['Gruntfile.js', 'lib/**/*.js', 'spec/**/*.js']
     },
     packageVersion: packageVersion(),
     shell: {

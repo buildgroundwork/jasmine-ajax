@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe('RequestTracker', function() {
+  'use strict';
+
   beforeEach(function() {
     var Constructor = mockAjaxRequire.AjaxRequestTracker();
     this.tracker = new Constructor();
@@ -84,3 +88,4 @@ describe('RequestTracker', function() {
     expect(this.tracker.filter('foo')).toEqual([]);
   });
 });
+

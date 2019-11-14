@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe('FakeRequest', function() {
+  'use strict';
+
   beforeEach(function() {
     this.requestTracker = { track: jasmine.createSpy('trackRequest') };
     this.stubTracker = { findStub: function() {} };
@@ -872,3 +876,4 @@ describe('FakeRequest', function() {
     });
   });
 });
+

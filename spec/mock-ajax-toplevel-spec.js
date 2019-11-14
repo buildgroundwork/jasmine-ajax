@@ -1,6 +1,9 @@
-/*global sharedAjaxResponseBehaviorForZepto_Failure: true, sharedAjaxResponseBehaviorForZepto_Success: true */
+/* global sharedAjaxResponseBehaviorForZepto_Failure, sharedAjaxResponseBehaviorForZepto_Success */
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, afterEach, expect, spyOn */
 
 describe("Jasmine Mock Ajax (for toplevel)", function() {
+  'use strict';
+
   var request, anotherRequest, response;
   var success, error, complete;
   var client, onreadystatechange;
@@ -485,6 +488,8 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
 
 
 function sharedAjaxResponseBehaviorForZepto_Success(context) {
+  'use strict';
+
   describe("the success response", function () {
     var xhr;
     beforeEach(function() {
@@ -519,6 +524,8 @@ function sharedAjaxResponseBehaviorForZepto_Success(context) {
 }
 
 function sharedAjaxResponseBehaviorForZepto_Failure(context) {
+  'use strict';
+
   describe("the failure response", function () {
     var xhr;
     beforeEach(function() {
@@ -551,3 +558,4 @@ function sharedAjaxResponseBehaviorForZepto_Failure(context) {
     });
   });
 }
+

@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe('ParamParser', function() {
+  'use strict';
+
   beforeEach(function() {
     var Constructor = mockAjaxRequire.AjaxParamParser();
     expect(Constructor).toEqual(jasmine.any(Function));
@@ -105,3 +109,4 @@ describe('ParamParser', function() {
     expect(custom.parse).not.toHaveBeenCalled();
   });
 });
+

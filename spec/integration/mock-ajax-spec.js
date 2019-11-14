@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe("mockAjax", function() {
+  'use strict';
+
   it("throws an error if global XMLHttpRequest is no longer the original", function() {
     var fakeXmlHttpRequest = jasmine.createSpy('fakeXmlHttpRequest'),
       fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
@@ -105,3 +109,4 @@ describe("mockAjax", function() {
     expect(mockAjax.requests.count()).toBe(0);
   });
 });
+

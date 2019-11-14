@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe("withMock", function() {
+  'use strict';
+
   var sendRequest = function(fakeGlobal) {
     var xhr = new fakeGlobal.XMLHttpRequest();
 
@@ -37,3 +41,4 @@ describe("withMock", function() {
     expect(xmlHttpRequest.open).toHaveBeenCalled();
   });
 });
+

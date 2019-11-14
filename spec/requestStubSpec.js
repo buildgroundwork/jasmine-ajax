@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe('RequestStub', function() {
+  'use strict';
+
   beforeEach(function() {
     this.RequestStub = mockAjaxRequire.AjaxRequestStub();
 
@@ -171,3 +175,4 @@ describe('RequestStub', function() {
     });
   });
 });
+

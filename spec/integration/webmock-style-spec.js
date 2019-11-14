@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
+
 describe("Webmock style mocking", function() {
+  'use strict';
+
   var successSpy, errorSpy, timeoutSpy, response, fakeGlobal, mockAjax;
 
   var sendRequest = function(fakeGlobal, url, method) {
@@ -109,3 +113,4 @@ describe("Webmock style mocking", function() {
     });
   });
 });
+

@@ -1,4 +1,8 @@
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect */
+
 describe('Event', function() {
+  'use strict';
+
   beforeEach(function() {
     this.eventFactory = mockAjaxRequire.AjaxEvent();
     this.xhr = jasmine.createSpy('xhr');
@@ -36,3 +40,4 @@ describe('Event', function() {
     expect(event.total).toBe(0);
   });
 });
+
