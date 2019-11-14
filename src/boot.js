@@ -31,35 +31,25 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 //Module wrapper to support both browser and CommonJS environment
+
+//  include "src/global.js";
+
 (function (factory) {
   'use strict';
 
-  const root = determineGlobal(this);
-
   if (typeof module !== 'undefined' && module.exports && typeof exports !== 'undefined') {
-    const jasmineRequire = require('jasmine-core/lib/jasmine-core/jasmine.js');
-    module.exports = factory(root, function() { return jasmineRequire; });
+    const { jasmineAjaxGlobal, mockAjaxRequire } = require('./global');
+    module.exports = factory(jasmineAjaxGlobal, mockAjaxRequire);
   } else {
-    root.MockAjax = factory(root, root.getJasmineRequireObj);
+    jasmineAjaxGlobal.MockAjax = factory(jasmineAjaxGlobal, jasmineAjaxGlobal.mockAjaxRequire);
   }
-
-  function determineGlobal(self) {
-    if (typeof global !== 'undefined') {
-      return global;
-    } else if (typeof window !== 'undefined') {
-      return window;
-    } else {
-      return self;
-    }
-  }
-}(function (global, getJasmineRequireObj) {
+}(function (global, mockAjaxRequire) {
   'use strict';
 
 // <% files.forEach(function(filename) { %>
 //  include "<%= filename %>";<% }); %>
 
-    const jRequire = getJasmineRequireObj()
-      , MockAjax = jRequire.ajax(jRequire);
+    const MockAjax = mockAjaxRequire.ajax(mockAjaxRequire);
     jasmine.Ajax = new MockAjax(global);
 
     return MockAjax;

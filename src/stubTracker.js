@@ -1,4 +1,4 @@
-getJasmineRequireObj().AjaxStubTracker = function() {
+mockAjaxRequire.AjaxStubTracker = function() {
   function StubTracker() {
     var stubs = [];
 

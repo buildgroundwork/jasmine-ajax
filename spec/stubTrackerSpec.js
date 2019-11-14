@@ -1,6 +1,6 @@
 describe('StubTracker', function() {
   beforeEach(function() {
-    var Constructor = getJasmineRequireObj().AjaxStubTracker();
+    var Constructor = mockAjaxRequire.AjaxStubTracker();
     this.tracker = new Constructor();
   });
 

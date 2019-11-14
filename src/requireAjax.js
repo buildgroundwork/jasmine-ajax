@@ -1,4 +1,4 @@
-getJasmineRequireObj().ajax = function(jRequire) {
+mockAjaxRequire.ajax = function(jRequire) {
   var $ajax = {};
 
   $ajax.RequestStub = jRequire.AjaxRequestStub();

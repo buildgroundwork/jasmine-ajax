@@ -1,4 +1,4 @@
-getJasmineRequireObj().AjaxParamParser = function() {
+mockAjaxRequire.AjaxParamParser = function() {
   function ParamParser() {
     var defaults = [
       {

@@ -1,4 +1,4 @@
-getJasmineRequireObj().MockAjax = function($ajax) {
+mockAjaxRequire.MockAjax = function($ajax) {
   function MockAjax(global) {
     var requestTracker = new $ajax.RequestTracker(),
       stubTracker = new $ajax.StubTracker(),

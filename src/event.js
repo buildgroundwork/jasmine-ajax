@@ -1,4 +1,4 @@
-getJasmineRequireObj().AjaxEvent = function() {
+mockAjaxRequire.AjaxEvent = function() {
   function now() {
     return new Date().getTime();
   }

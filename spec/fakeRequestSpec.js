@@ -19,7 +19,7 @@ describe('FakeRequest', function() {
       DOMParser: window.DOMParser,
       ActiveXObject: window.ActiveXObject
     };
-    this.FakeRequest = getJasmineRequireObj().AjaxFakeRequest(this.eventBusFactory)(this.fakeGlobal, this.requestTracker, this.stubTracker, this.paramParser);
+    this.FakeRequest = mockAjaxRequire.AjaxFakeRequest(this.eventBusFactory)(this.fakeGlobal, this.requestTracker, this.stubTracker, this.paramParser);
   });
 
   it('extends from the global XMLHttpRequest', function() {
@@ -30,7 +30,7 @@ describe('FakeRequest', function() {
 
   it('skips XMLHttpRequest attributes that IE does not want copied', function() {
     // use real window here so it will correctly go red on IE if it breaks
-    var FakeRequest = getJasmineRequireObj().AjaxFakeRequest(this.eventBusFactory)(window, this.requestTracker, this.stubTracker, this.paramParser);
+    var FakeRequest = mockAjaxRequire.AjaxFakeRequest(this.eventBusFactory)(window, this.requestTracker, this.stubTracker, this.paramParser);
     var request = new FakeRequest();
 
     expect(request.responseBody).toBeUndefined();
