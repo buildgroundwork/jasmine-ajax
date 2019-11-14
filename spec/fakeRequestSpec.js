@@ -3,7 +3,7 @@
 describe('FakeRequest', function() {
   'use strict';
 
-  var requestTracker, stubTracker, parserInstance, paramParser, fakeEventBus
+  let requestTracker, stubTracker, parserInstance, paramParser, fakeEventBus
     , eventBusFactory, FakeRequest;
 
   beforeEach(function() {
@@ -19,7 +19,7 @@ describe('FakeRequest', function() {
     };
 
     eventBusFactory = function() { return fakeEventBus; };
-    var fakeGlobal = {
+    const fakeGlobal = {
       XMLHttpRequest: function() {
         this.extraAttribute = 'my cool attribute';
       },
@@ -30,15 +30,15 @@ describe('FakeRequest', function() {
   });
 
   it('extends from the global XMLHttpRequest', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     expect(request.extraAttribute).toEqual('my cool attribute');
   });
 
   it('skips XMLHttpRequest attributes that IE does not want copied', function() {
     // use real window here so it will correctly go red on IE if it breaks
-    var FakeRequest = mockAjaxRequire.AjaxFakeRequest(eventBusFactory)(window, requestTracker, stubTracker, paramParser);
-    var request = new FakeRequest();
+    const FakeRequest = mockAjaxRequire.AjaxFakeRequest(eventBusFactory)(window, requestTracker, stubTracker, paramParser);
+    const request = new FakeRequest();
 
     expect(request.responseBody).toBeUndefined();
     expect(request.responseXML).toBeUndefined();
@@ -46,20 +46,20 @@ describe('FakeRequest', function() {
   });
 
   it('tracks the request', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     expect(requestTracker.track).toHaveBeenCalledWith(request);
   });
 
   it('has default request headers and override mime type', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     expect(request.requestHeaders).toEqual({});
     expect(request.overriddenMimeType).toBeNull();
   });
 
   it('saves request information when opened', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open('METHOD', 'URL', 'ignore_async', 'USERNAME', 'PASSWORD');
 
     expect(request.method).toEqual('METHOD');
@@ -69,7 +69,7 @@ describe('FakeRequest', function() {
   });
 
   it('converts the url to a string', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open('METHOD', undefined);
 
     expect(request.method).toEqual('METHOD');
@@ -77,7 +77,7 @@ describe('FakeRequest', function() {
   });
 
   it('saves an override mime type', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     request.overrideMimeType('application/text; charset: utf-8');
 
@@ -86,7 +86,7 @@ describe('FakeRequest', function() {
 
   describe('when the request is not yet opened', function () {
     it('should throw an error', function () {
-      var request = new FakeRequest();
+      const request = new FakeRequest();
 
       expect(function () {
         request.setRequestHeader('X-Header-1', 'value1');
@@ -95,7 +95,7 @@ describe('FakeRequest', function() {
   });
 
   describe('when the request is opened', function () {
-    var request;
+    let request;
 
     beforeEach(function () {
       request = new FakeRequest();
@@ -140,17 +140,17 @@ describe('FakeRequest', function() {
   });
 
   it('getResponseHeader returns null, if no response has been received', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     expect(request.getResponseHeader('XY')).toBe(null);
   });
 
   it('getAllResponseHeaders returns null, if no response has been received', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     expect(request.getAllResponseHeaders()).toBe(null);
   });
 
   describe('managing readyState', function() {
-    var request;
+    let request;
 
     beforeEach(function() {
       request = new FakeRequest();
@@ -249,8 +249,8 @@ describe('FakeRequest', function() {
       request.send();
       fakeEventBus.trigger.calls.reset();
 
-      var events = [];
-      var headers = [
+      const events = [];
+      const headers = [
         { name: 'X-Header', value: 'foo' }
       ];
 
@@ -312,7 +312,7 @@ describe('FakeRequest', function() {
   });
 
   it('registers on-style callback with the event bus', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('readystatechange', jasmine.any(Function));
     expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('loadstart', jasmine.any(Function));
@@ -332,9 +332,9 @@ describe('FakeRequest', function() {
     request.ontimeout = jasmine.createSpy('timeout');
     request.onloadend = jasmine.createSpy('loadend');
 
-    var args = fakeEventBus.addEventListener.calls.allArgs();
-    for (var i = 0; i < args.length; i++) {
-      var eventName = args[i][0],
+    const args = fakeEventBus.addEventListener.calls.allArgs();
+    for (let i = 0; i < args.length; i++) {
+      const eventName = args[i][0],
           busCallback = args[i][1];
 
       busCallback();
@@ -343,7 +343,7 @@ describe('FakeRequest', function() {
   });
 
   it('delegates addEventListener to the eventBus', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     request.addEventListener('foo', 'bar');
 
@@ -351,7 +351,7 @@ describe('FakeRequest', function() {
   });
 
   it('delegates removeEventListener to the eventBus', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     request.removeEventListener('foo', 'bar');
 
@@ -359,7 +359,7 @@ describe('FakeRequest', function() {
   });
 
   describe('triggering progress events', function() {
-    var request;
+    let request;
 
     beforeEach(function() {
       request = new FakeRequest();
@@ -464,10 +464,10 @@ describe('FakeRequest', function() {
   });
 
   it('ticks the jasmine clock on timeout', function() {
-    var clock = { tick: jasmine.createSpy('tick') };
+    const clock = { tick: jasmine.createSpy('tick') };
     spyOn(jasmine, 'clock').and.returnValue(clock);
 
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -477,13 +477,13 @@ describe('FakeRequest', function() {
   });
 
   it('has an initial status of null', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     expect(request.status).toBeNull();
   });
 
   it('has an aborted status', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
 
     request.abort();
 
@@ -492,7 +492,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a status from the response', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -503,7 +503,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a statusText from the response', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -514,7 +514,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a status from the response when there is an error', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -525,7 +525,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a statusText from the response when there is an error', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -536,7 +536,7 @@ describe('FakeRequest', function() {
   });
 
   it('saves off any data sent to the server', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send('foo=bar&baz=quux');
 
@@ -544,7 +544,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses data sent to the server', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send('foo=bar&baz=quux');
 
@@ -554,7 +554,7 @@ describe('FakeRequest', function() {
   });
 
   it('skips parsing if no data was sent', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -563,7 +563,7 @@ describe('FakeRequest', function() {
   });
 
   it('saves responseText', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -573,7 +573,7 @@ describe('FakeRequest', function() {
   });
 
   it('defaults responseText if none is given', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -583,7 +583,7 @@ describe('FakeRequest', function() {
   });
 
   it('saves responseURL', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -593,7 +593,7 @@ describe('FakeRequest', function() {
   });
 
   it('defaults responseURL if none is given', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -603,7 +603,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves individual response headers', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -618,7 +618,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves individual response headers case-insensitively', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -633,7 +633,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves a combined response header', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -649,11 +649,11 @@ describe('FakeRequest', function() {
   });
 
   it("doesn't pollute the response headers of other XHRs", function() {
-    var request1 = new FakeRequest();
+    const request1 = new FakeRequest();
     request1.open();
     request1.send();
 
-    var request2 = new FakeRequest();
+    const request2 = new FakeRequest();
     request2.open();
     request2.send();
 
@@ -665,7 +665,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves all response headers', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -682,7 +682,7 @@ describe('FakeRequest', function() {
   });
 
   it('sets the content-type header to the specified contentType when no other headers are supplied', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -693,7 +693,7 @@ describe('FakeRequest', function() {
   });
 
   it('sets a default content-type header if no contentType and headers are supplied', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -704,7 +704,7 @@ describe('FakeRequest', function() {
   });
 
   it('has no responseXML by default', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -714,7 +714,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses a text/xml document into responseXML', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -731,7 +731,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses an application/xml document into responseXML', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -748,7 +748,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses a custom blah+xml document into responseXML', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -765,7 +765,7 @@ describe('FakeRequest', function() {
   });
 
   it('stringifies responseJSON into responseText', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -775,7 +775,7 @@ describe('FakeRequest', function() {
   });
 
   it('defaults the response attribute to the responseText', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -785,7 +785,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a text response when the responseType is blank', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -795,7 +795,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a text response when the responseType is text', function() {
-    var request = new FakeRequest();
+    const request = new FakeRequest();
     request.open();
     request.send();
 
@@ -806,7 +806,7 @@ describe('FakeRequest', function() {
 
   describe('stream response', function() {
     it('can return a response', function() {
-      var request = new FakeRequest();
+      const request = new FakeRequest();
       request.open();
       request.send();
 
@@ -817,7 +817,7 @@ describe('FakeRequest', function() {
     });
 
     it('can finish request', function() {
-      var request = new FakeRequest();
+      const request = new FakeRequest();
       request.open();
       request.send();
 
@@ -830,7 +830,7 @@ describe('FakeRequest', function() {
     });
 
     it('can cancel request', function() {
-      var request = new FakeRequest();
+      const request = new FakeRequest();
       request.open();
       request.send();
 
@@ -845,7 +845,7 @@ describe('FakeRequest', function() {
     });
 
     it('can send part of data as response', function() {
-      var request = new FakeRequest();
+      const request = new FakeRequest();
       request.open();
       request.send();
 
@@ -863,7 +863,7 @@ describe('FakeRequest', function() {
     });
 
     it('thrown an error if finish request and then try to cancel', function() {
-      var request = new FakeRequest();
+      const request = new FakeRequest();
       request.open();
       request.send();
 

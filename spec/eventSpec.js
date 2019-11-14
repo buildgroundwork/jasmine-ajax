@@ -3,7 +3,7 @@
 describe('Event', function() {
   'use strict';
 
-  var eventFactory, xhr;
+  let eventFactory, xhr;
 
   beforeEach(function() {
     eventFactory = mockAjaxRequire.AjaxEvent();
@@ -11,7 +11,7 @@ describe('Event', function() {
   });
 
   it('create an event', function() {
-    var event = eventFactory.event(xhr, 'readystatechange');
+    const event = eventFactory.event(xhr, 'readystatechange');
 
     expect(event.type).toBe('readystatechange');
     expect(event.currentTarget).toBe(xhr);
@@ -25,7 +25,7 @@ describe('Event', function() {
   });
 
   it('create a progress event', function() {
-    var event = eventFactory.progressEvent(xhr, 'loadend');
+    const event = eventFactory.progressEvent(xhr, 'loadend');
 
     expect(event.type).toBe('loadend');
     expect(event.currentTarget).toBe(xhr);

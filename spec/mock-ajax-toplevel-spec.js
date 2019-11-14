@@ -4,14 +4,14 @@
 describe("Jasmine Mock Ajax (for toplevel)", function() {
   'use strict';
 
-  var request, anotherRequest, response;
-  var success, error, complete;
-  var client, onreadystatechange;
-  var sharedContext = {};
-  var fakeGlobal, mockAjax;
+  let request, anotherRequest, response;
+  let success, error, complete;
+  let client, onreadystatechange;
+  const sharedContext = {};
+  let fakeGlobal, mockAjax;
 
   beforeEach(function() {
-    var fakeXMLHttpRequest = jasmine.createSpy('realFakeXMLHttpRequest');
+    const fakeXMLHttpRequest = jasmine.createSpy('realFakeXMLHttpRequest');
     fakeGlobal = {
       XMLHttpRequest: fakeXMLHttpRequest,
       DOMParser: window.DOMParser,
@@ -173,7 +173,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
         client.send();
 
         request = mockAjax.requests.mostRecent();
-        var responseObject = {status: 200, statusText: "OK", contentType: "application/json", responseText: '{"foo":"bar"}', responseType: "json"};
+        const responseObject = {status: 200, statusText: "OK", contentType: "application/json", responseText: '{"foo":"bar"}', responseType: "json"};
 
         request.respondWith(responseObject);
 
@@ -201,7 +201,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
       });
 
       it("should return a JavaScript object for XHR2 response", function() {
-        var responseText = sharedContext.responseText;
+        const responseText = sharedContext.responseText;
         expect(success.calls.mostRecent().args[0]).toEqual(responseText);
 
         expect(response.responseText).toEqual(responseText);
@@ -220,7 +220,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
         client.send();
 
         request = mockAjax.requests.mostRecent();
-        var responseObject = {status: 200, statusText: "OK", contentType: "application/json", responseText: '{"foo":"bar"}', responseType: 'json'};
+        const responseObject = {status: 200, statusText: "OK", contentType: "application/json", responseText: '{"foo":"bar"}', responseType: 'json'};
 
         request.respondWith(responseObject);
 
@@ -236,7 +236,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
       });
 
       it("should return the provided override for the XHR2 response", function() {
-        var responseText = sharedContext.responseText;
+        const responseText = sharedContext.responseText;
 
         expect(response.responseText).toEqual(responseText);
         expect(response.response).toEqual({foo: "bar"});
@@ -254,7 +254,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
         client.send();
 
         request = mockAjax.requests.mostRecent();
-        var responseObject = {status: 200, statusText: "OK", contentType: "application/json", responseText: '{"foo":"bar"}', responseType: 'json', responseURL: 'example.com/redirected'};
+        const responseObject = {status: 200, statusText: "OK", contentType: "application/json", responseText: '{"foo":"bar"}', responseType: 'json', responseURL: 'example.com/redirected'};
 
         request.respondWith(responseObject);
 
@@ -280,7 +280,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
         client.send();
 
         request = mockAjax.requests.mostRecent();
-        var responseObject = {status: 200, statusText: "OK", responseText: '["foo"]', responseHeaders: {
+        const responseObject = {status: 200, statusText: "OK", responseText: '["foo"]', responseHeaders: {
           'X-Header1': 'header 1 value',
           'X-Header2': 'header 2 value',
           'X-Header3': 'header 3 value'
@@ -312,7 +312,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
         client.send();
 
         request = mockAjax.requests.mostRecent();
-        var responseObject = {status: 200, statusText: "OK", responseText: '["foo"]', responseHeaders: [
+        const responseObject = {status: 200, statusText: "OK", responseText: '["foo"]', responseHeaders: [
           { name: 'X-Header', value: 'header value 1' },
           { name: 'X-Header', value: 'header value 2' }
         ]};
@@ -491,7 +491,7 @@ function sharedAjaxResponseBehaviorForZepto_Success(context) {
   'use strict';
 
   describe("the success response", function () {
-    var xhr;
+    let xhr;
     beforeEach(function() {
       xhr = context.responseCallback.calls.mostRecent().args[2];
     });
@@ -505,7 +505,7 @@ function sharedAjaxResponseBehaviorForZepto_Success(context) {
     });
 
     it("should have the expected xhr2 response", function() {
-      var expected = context.response || context.responseType === 'json' ? JSON.parse(context.responseText) : context.responseText;
+      const expected = context.response || context.responseType === 'json' ? JSON.parse(context.responseText) : context.responseText;
       expect(xhr.response).toEqual(expected);
     });
 
@@ -527,7 +527,7 @@ function sharedAjaxResponseBehaviorForZepto_Failure(context) {
   'use strict';
 
   describe("the failure response", function () {
-    var xhr;
+    let xhr;
     beforeEach(function() {
       xhr = context.responseCallback.calls.mostRecent().args[0];
     });
@@ -541,7 +541,7 @@ function sharedAjaxResponseBehaviorForZepto_Failure(context) {
     });
 
     it("should have the expected xhr2 response", function() {
-      var expected = context.response || xhr.responseType === 'json' ? JSON.parse(xhr.responseText) : xhr.responseText;
+      const expected = context.response || xhr.responseType === 'json' ? JSON.parse(xhr.responseText) : xhr.responseText;
       expect(xhr.response).toEqual(expected);
     });
 

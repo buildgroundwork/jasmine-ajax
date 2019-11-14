@@ -1,6 +1,6 @@
 (function() {
   mockAjaxRequire.ajax = function(jRequire) {
-    var $ajax = {};
+    const $ajax = {};
 
     $ajax.RequestStub = jRequire.AjaxRequestStub();
     $ajax.RequestTracker = jRequire.AjaxRequestTracker();

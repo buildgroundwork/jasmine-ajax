@@ -3,12 +3,12 @@
 describe("Webmock style mocking", function() {
   'use strict';
 
-  var successSpy, errorSpy, timeoutSpy, response, fakeGlobal, mockAjax;
+  let successSpy, errorSpy, timeoutSpy, response, fakeGlobal, mockAjax;
 
-  var sendRequest = function(fakeGlobal, url, method) {
+  const sendRequest = function(fakeGlobal, url, method) {
     url = url || "http://example.com/someApi";
     method = method || 'GET';
-    var xhr = new fakeGlobal.XMLHttpRequest();
+    const xhr = new fakeGlobal.XMLHttpRequest();
     xhr.onreadystatechange = function(args) {
       if (this.readyState === (this.DONE || 4)) { // IE 8 doesn't support DONE
         response = this;

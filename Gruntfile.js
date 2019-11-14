@@ -60,7 +60,7 @@ module.exports = function( grunt ) {
   });
 
   grunt.registerTask('versionCheck', function() {
-    var pkgVersion = packageVersion(),
+    const pkgVersion = packageVersion(),
         bower = require('./bower.json'),
         bowerVersion = bower.version;
 

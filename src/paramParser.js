@@ -1,7 +1,7 @@
 (function() {
   mockAjaxRequire.AjaxParamParser = function() {
     function ParamParser() {
-      var defaults = [
+      const defaults = [
         {
           test: function(xhr) {
             return (/^application\/json/).test(xhr.contentType());
@@ -15,12 +15,12 @@
             return true;
           },
           parse: function naiveParser(paramString) {
-            var data = {};
-            var params = paramString.split('&');
+            const data = {};
+            const params = paramString.split('&');
 
-            for (var i = 0; i < params.length; ++i) {
-              var kv = params[i].replace(/\+/g, ' ').split('=');
-              var key = decodeURIComponent(kv[0]);
+            for (let i = 0; i < params.length; ++i) {
+              const kv = params[i].replace(/\+/g, ' ').split('=');
+              const key = decodeURIComponent(kv[0]);
               data[key] = data[key] || [];
               data[key].push(decodeURIComponent(kv[1]));
             }
@@ -28,15 +28,15 @@
           }
         }
       ];
-      var paramParsers = [];
+      let paramParsers = [];
 
       this.add = function(parser) {
         paramParsers.unshift(parser);
       };
 
       this.findParser = function(xhr) {
-          for (var i = 0; i < paramParsers.length; ++i) {
-            var parser = paramParsers[i];
+          for (let i = 0; i < paramParsers.length; ++i) {
+            const parser = paramParsers[i];
             if (parser.test(xhr)) {
               return parser;
             }
@@ -45,7 +45,7 @@
 
       this.reset = function() {
         paramParsers = [];
-        for (var i = 0; i < defaults.length; ++i) {
+        for (let i = 0; i < defaults.length; ++i) {
           paramParsers.push(defaults[i]);
         }
       };

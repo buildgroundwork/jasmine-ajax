@@ -15,7 +15,7 @@
         return list.indexOf(thing);
       }
 
-      for(var i = 0; i < list.length; i++) {
+      for(let i = 0; i < list.length; i++) {
         if (thing === list[i]) {
           return i;
         }
@@ -29,7 +29,7 @@
     };
 
     EventBus.prototype.removeEventListener = function(event, callback) {
-      var index = findIndex(this.eventList[event], callback);
+      const index = findIndex(this.eventList[event], callback);
 
       if (index >= 0) {
         this.eventList[event].splice(index, 1);
@@ -37,7 +37,7 @@
     };
 
     EventBus.prototype.trigger = function(event) {
-      var evt;
+      let evt;
 
       // Event 'readystatechange' is should be a simple event.
       // Others are progress event.
@@ -48,10 +48,10 @@
         evt = eventFactory.progressEvent(this.source, event);
       }
 
-      var eventListeners = this.eventList[event];
+      const eventListeners = this.eventList[event];
 
       if (eventListeners) {
-        for (var i = 0; i < eventListeners.length; i++) {
+        for (let i = 0; i < eventListeners.length; i++) {
           eventListeners[i].call(this.source, evt);
         }
       }

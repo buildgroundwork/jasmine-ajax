@@ -42,7 +42,7 @@
     "strict"        : true,     // Require `use strict` pragma in every file.
     "trailing"      : true,     // Prohibit trailing whitespaces.
     "laxcomma"      : true,     // Suppress warnings about comma-first coding style.
-    /* "varstmt"       : true,     // Prohibit use of var statements */
+    "varstmt"       : true,     // Prohibit use of var statements
 
     // == Relaxing Options ================================================
     //

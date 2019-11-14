@@ -3,10 +3,10 @@
 describe('RequestTracker', function() {
   'use strict';
 
-  var tracker;
+  let tracker;
 
   beforeEach(function() {
-    var Constructor = mockAjaxRequire.AjaxRequestTracker();
+    const Constructor = mockAjaxRequire.AjaxRequestTracker();
     tracker = new Constructor();
   });
 
@@ -79,7 +79,7 @@ describe('RequestTracker', function() {
     tracker.track({ url: 'bar' });
     tracker.track({ url: 'baz' });
 
-    var func = function(request) {
+    const func = function(request) {
       return request.url === 'bar';
     };
 

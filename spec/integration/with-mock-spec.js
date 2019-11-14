@@ -3,15 +3,15 @@
 describe("withMock", function() {
   'use strict';
 
-  var sendRequest = function(fakeGlobal) {
-    var xhr = new fakeGlobal.XMLHttpRequest();
+  const sendRequest = function(fakeGlobal) {
+    const xhr = new fakeGlobal.XMLHttpRequest();
 
     xhr.open("GET", "http://example.com/someApi");
     xhr.send();
   };
 
   it("installs the mock for passed in function, and uninstalls when complete", function() {
-    var xmlHttpRequest = jasmine.createSpyObj('XMLHttpRequest', ['open', 'send']),
+    const xmlHttpRequest = jasmine.createSpyObj('XMLHttpRequest', ['open', 'send']),
       xmlHttpRequestCtor = spyOn(window, 'XMLHttpRequest').and.returnValue(xmlHttpRequest),
       fakeGlobal = {XMLHttpRequest: xmlHttpRequestCtor},
       mockAjax = new window.MockAjax(fakeGlobal);
@@ -26,7 +26,7 @@ describe("withMock", function() {
   });
 
   it("properly uninstalls when the passed in function throws", function() {
-    var xmlHttpRequest = jasmine.createSpyObj('XMLHttpRequest', ['open', 'send']),
+    const xmlHttpRequest = jasmine.createSpyObj('XMLHttpRequest', ['open', 'send']),
       xmlHttpRequestCtor = spyOn(window, 'XMLHttpRequest').and.returnValue(xmlHttpRequest),
       fakeGlobal = {XMLHttpRequest: xmlHttpRequestCtor},
       mockAjax = new window.MockAjax(fakeGlobal);

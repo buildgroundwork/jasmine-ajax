@@ -2,7 +2,7 @@
   mockAjaxRequire.AjaxFakeRequest = function(eventBusFactory) {
     function extend(destination, source, propertiesToSkip) {
       propertiesToSkip = propertiesToSkip || [];
-      for (var property in source) {
+      for (let property in source) {
         if (source.hasOwnProperty(property) && !arrayContains(propertiesToSkip, property)) {
           destination[property] = source[property];
         }
@@ -11,7 +11,7 @@
     }
 
     function arrayContains(arr, item) {
-      for (var i = 0; i < arr.length; i++) {
+      for (let i = 0; i < arr.length; i++) {
         if (arr[i] === item) {
           return true;
         }
@@ -39,7 +39,7 @@
     }
 
     function unconvertibleResponseTypeMessage(type) {
-      var msg = [
+      const msg = [
         "Can't build XHR.response for XHR.responseType of '",
         type,
         "'.",
@@ -59,7 +59,7 @@
 
       function findHeader(name, headers) {
         name = name.toLowerCase();
-        for (var header in headers) {
+        for (let header in headers) {
           if (header.toLowerCase() === name) {
             return headers[header];
           }
@@ -67,13 +67,13 @@
       }
 
       function normalizeHeaders(rawHeaders, contentType) {
-        var headers = [];
+        let headers = [];
 
         if (rawHeaders) {
           if (rawHeaders instanceof Array) {
             headers = rawHeaders;
           } else {
-            for (var headerName in rawHeaders) {
+            for (let headerName in rawHeaders) {
               if (rawHeaders.hasOwnProperty(headerName)) {
                 headers.push({ name: headerName, value: rawHeaders[headerName] });
               }
@@ -90,14 +90,14 @@
         if (global.DOMParser) {
           return (new global.DOMParser()).parseFromString(xmlText, 'text/xml');
         } else {
-          var xml = new global.ActiveXObject("Microsoft.XMLDOM");
+          const xml = new global.ActiveXObject("Microsoft.XMLDOM");
           xml.async = "false";
           xml.loadXML(xmlText);
           return xml;
         }
       }
 
-      var xmlParsables = ['text/xml', 'application/xml'];
+      const xmlParsables = ['text/xml', 'application/xml'];
 
       function getResponseXml(responseText, contentType) {
         if (arrayContains(xmlParsables, contentType.toLowerCase())) {
@@ -116,7 +116,7 @@
           DONE: 4
       });
 
-      var iePropertiesThatCannotBeCopied = ['responseBody', 'responseText', 'responseXML', 'status', 'statusText', 'responseTimeout', 'responseURL'];
+      const iePropertiesThatCannotBeCopied = ['responseBody', 'responseText', 'responseXML', 'status', 'statusText', 'responseTimeout', 'responseURL'];
       extend(FakeXMLHttpRequest.prototype, new global.XMLHttpRequest(), iePropertiesThatCannotBeCopied);
       extend(FakeXMLHttpRequest.prototype, {
         open: function() {
@@ -180,7 +180,7 @@
           this.params = data;
           this.eventBus.trigger('loadstart');
 
-          var stub = stubTracker.findStub(this.url, data, this.method);
+          const stub = stubTracker.findStub(this.url, data, this.method);
           if (stub) {
             stub.handleRequest(this);
           }
@@ -199,12 +199,12 @@
         },
 
         getResponseHeader: function(name) {
-          var resultHeader = null;
+          let resultHeader = null;
           if (!this.responseHeaders) { return resultHeader; }
 
           name = name.toLowerCase();
-          for(var i = 0; i < this.responseHeaders.length; i++) {
-            var header = this.responseHeaders[i];
+          for(let i = 0; i < this.responseHeaders.length; i++) {
+            const header = this.responseHeaders[i];
             if (name === header.name.toLowerCase()) {
               if (resultHeader) {
                 resultHeader = [resultHeader, header.value].join(', ');
@@ -219,8 +219,8 @@
         getAllResponseHeaders: function() {
           if (!this.responseHeaders) { return null; }
 
-          var responseHeaders = [];
-          for (var i = 0; i < this.responseHeaders.length; i++) {
+          const responseHeaders = [];
+          for (let i = 0; i < this.responseHeaders.length; i++) {
             responseHeaders.push(this.responseHeaders[i].name + ': ' +
               this.responseHeaders[i].value);
           }

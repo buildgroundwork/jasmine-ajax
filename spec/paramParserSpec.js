@@ -3,15 +3,15 @@
 describe('ParamParser', function() {
   'use strict';
 
-  var paramParser;
+  let paramParser;
 
   beforeEach(function() {
-    var Constructor = mockAjaxRequire.AjaxParamParser();
+    const Constructor = mockAjaxRequire.AjaxParamParser();
     paramParser = new Constructor();
   });
 
   it('has a default parser', function() {
-    var parser = paramParser.findParser({ contentType: function() {} }),
+    const parser = paramParser.findParser({ contentType: function() {} }),
       parsed = parser.parse('3+stooges=shemp&3+stooges=larry%20%26%20moe%20%26%20curly&some%3Dthing=else+entirely');
 
     expect(parsed).toEqual({
@@ -21,7 +21,7 @@ describe('ParamParser', function() {
   });
 
   it('should detect and parse json', function() {
-    var data = {
+    const data = {
       foo: 'bar',
       baz: ['q', 'u', 'u', 'x'],
       nested: {
@@ -37,7 +37,7 @@ describe('ParamParser', function() {
   });
 
   it('should parse json with further qualifiers on content-type', function() {
-    var data = {
+    const data = {
       foo: 'bar',
       baz: ['q', 'u', 'u', 'x'],
       nested: {
@@ -53,14 +53,14 @@ describe('ParamParser', function() {
   });
 
   it('should have custom parsers take precedence', function() {
-    var custom = {
+    const custom = {
       test: jasmine.createSpy('test').and.returnValue(true),
       parse: jasmine.createSpy('parse').and.returnValue('parsedFormat')
     };
 
     paramParser.add(custom);
 
-    var parser = paramParser.findParser({ contentType: function() {} }),
+    const parser = paramParser.findParser({ contentType: function() {} }),
       parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual('parsedFormat');
@@ -69,14 +69,14 @@ describe('ParamParser', function() {
   });
 
   it('should skip custom parsers that do not match', function() {
-    var custom = {
+    const custom = {
       test: jasmine.createSpy('test').and.returnValue(false),
       parse: jasmine.createSpy('parse').and.returnValue('parsedFormat')
     };
 
     paramParser.add(custom);
 
-    var parser = paramParser.findParser({ contentType: function() {} }),
+    const parser = paramParser.findParser({ contentType: function() {} }),
       parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual({ custom_format: [ 'undefined' ] });
@@ -85,14 +85,14 @@ describe('ParamParser', function() {
   });
 
   it('removes custom parsers when reset', function() {
-    var custom = {
+    const custom = {
       test: jasmine.createSpy('test').and.returnValue(true),
       parse: jasmine.createSpy('parse').and.returnValue('parsedFormat')
     };
 
     paramParser.add(custom);
 
-    var parser = paramParser.findParser({ contentType: function() {} }),
+    let parser = paramParser.findParser({ contentType: function() {} }),
       parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual('parsedFormat');

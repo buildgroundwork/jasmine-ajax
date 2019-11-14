@@ -1,15 +1,15 @@
 (function() {
   mockAjaxRequire.AjaxRequestStub = function() {
-    var RETURN = 0,
-        ERROR = 1,
-        TIMEOUT = 2,
-        CALL = 3;
+    const RETURN = 0,
+      ERROR = 1,
+      TIMEOUT = 2,
+      CALL = 3;
 
-    var normalizeQuery = function(query) {
+    const normalizeQuery = function(query) {
       return query ? query.split('&').sort().join('&') : undefined;
     };
 
-    var timeoutRequest = function(request) {
+    const timeoutRequest = function(request) {
       request.responseTimeout();
     };
 
@@ -18,7 +18,7 @@
         this.url = url;
         this.query = undefined;
       } else {
-        var split = url.split('?');
+        const split = url.split('?');
         this.url = split[0];
         this.query = split.length > 1 ? normalizeQuery(split[1]) : undefined;
       }
@@ -56,17 +56,17 @@
       },
 
       matches: function(fullUrl, data, method) {
-        var urlMatches = false;
+        let urlMatches = false;
         fullUrl = fullUrl.toString();
         if (this.url instanceof RegExp) {
           urlMatches = this.url.test(fullUrl);
         } else {
-          var urlSplit = fullUrl.split('?'),
+          const urlSplit = fullUrl.split('?'),
               url = urlSplit[0],
               query = urlSplit[1];
           urlMatches = this.url === url && this.query === normalizeQuery(query);
         }
-        var dataMatches = false;
+        let dataMatches = false;
         if (this.data instanceof RegExp) {
           dataMatches = this.data.test(data);
         } else {

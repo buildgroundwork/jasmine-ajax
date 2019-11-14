@@ -1,7 +1,7 @@
 (function() {
   mockAjaxRequire.MockAjax = function($ajax) {
     function MockAjax(global) {
-      var requestTracker = new $ajax.RequestTracker(),
+      const requestTracker = new $ajax.RequestTracker(),
         stubTracker = new $ajax.StubTracker(),
         paramParser = new $ajax.ParamParser(),
         realAjaxFunction = global.XMLHttpRequest,
@@ -27,7 +27,7 @@
       };
 
       this.stubRequest = function(url, data, method) {
-        var stub = new $ajax.RequestStub(url, data, method);
+        const stub = new $ajax.RequestStub(url, data, method);
         stubTracker.addStub(stub);
         return stub;
       };

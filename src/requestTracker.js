@@ -1,7 +1,7 @@
 (function() {
   mockAjaxRequire.AjaxRequestTracker = function() {
     function RequestTracker() {
-      var requests = [];
+      let requests = [];
 
       this.track = function(request) {
         requests.push(request);
@@ -28,9 +28,9 @@
       };
 
       this.filter = function(url_to_match) {
-        var matching_requests = [];
+        const matching_requests = [];
 
-        for (var i = 0; i < requests.length; i++) {
+        for (let i = 0; i < requests.length; i++) {
           if (url_to_match instanceof RegExp &&
               url_to_match.test(requests[i].url)) {
               matching_requests.push(requests[i]);
