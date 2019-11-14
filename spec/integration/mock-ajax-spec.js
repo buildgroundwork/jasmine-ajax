@@ -41,8 +41,8 @@ describe("mockAjax", function() {
 
   it("does not replace XMLHttpRequest until it is installed", function() {
     const fakeXmlHttpRequest = jasmine.createSpy('fakeXmlHttpRequest'),
-        fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
-        mockAjax = new window.MockAjax(fakeGlobal);
+      fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
+      mockAjax = new window.MockAjax(fakeGlobal);
 
     fakeGlobal.XMLHttpRequest('foo');
     expect(fakeXmlHttpRequest).toHaveBeenCalledWith('foo');
@@ -55,8 +55,8 @@ describe("mockAjax", function() {
 
   it("replaces the global XMLHttpRequest on uninstall", function() {
     const fakeXmlHttpRequest = jasmine.createSpy('fakeXmlHttpRequest'),
-        fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
-        mockAjax = new window.MockAjax(fakeGlobal);
+      fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
+      mockAjax = new window.MockAjax(fakeGlobal);
 
     mockAjax.install();
     mockAjax.uninstall();
@@ -67,8 +67,8 @@ describe("mockAjax", function() {
 
   it("clears requests and stubs upon uninstall", function() {
     const fakeXmlHttpRequest = jasmine.createSpy('fakeXmlHttpRequest'),
-        fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
-        mockAjax = new window.MockAjax(fakeGlobal);
+      fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
+      mockAjax = new window.MockAjax(fakeGlobal);
 
     mockAjax.install();
 
@@ -86,8 +86,8 @@ describe("mockAjax", function() {
 
   it("allows the httpRequest to be retrieved", function() {
     const fakeXmlHttpRequest = jasmine.createSpy('fakeXmlHttpRequest'),
-        fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
-        mockAjax = new window.MockAjax(fakeGlobal);
+      fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
+      mockAjax = new window.MockAjax(fakeGlobal);
 
     mockAjax.install();
     const request = new fakeGlobal.XMLHttpRequest();
@@ -98,8 +98,8 @@ describe("mockAjax", function() {
 
   it("allows the httpRequests to be cleared", function() {
     const fakeXmlHttpRequest = jasmine.createSpy('fakeXmlHttpRequest'),
-        fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
-        mockAjax = new window.MockAjax(fakeGlobal);
+      fakeGlobal = { XMLHttpRequest: fakeXmlHttpRequest },
+      mockAjax = new window.MockAjax(fakeGlobal);
 
     mockAjax.install();
     const request = new fakeGlobal.XMLHttpRequest();

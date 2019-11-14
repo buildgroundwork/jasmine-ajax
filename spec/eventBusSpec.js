@@ -51,7 +51,7 @@ describe('EventBus', function() {
 
   it('only triggers callbacks for the specified event', function() {
     const fooCallback = jasmine.createSpy('foo'),
-        barCallback = jasmine.createSpy('bar');
+      barCallback = jasmine.createSpy('bar');
 
     bus.addEventListener('foo', fooCallback);
     bus.addEventListener('bar', barCallback);

@@ -335,7 +335,7 @@ describe('FakeRequest', function() {
     const args = fakeEventBus.addEventListener.calls.allArgs();
     for (let i = 0; i < args.length; i++) {
       const eventName = args[i][0],
-          busCallback = args[i][1];
+        busCallback = args[i][1];
 
       busCallback();
       expect(request['on' + eventName]).toHaveBeenCalled();
