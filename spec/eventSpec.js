@@ -3,17 +3,19 @@
 describe('Event', function() {
   'use strict';
 
+  var eventFactory, xhr;
+
   beforeEach(function() {
-    this.eventFactory = mockAjaxRequire.AjaxEvent();
-    this.xhr = jasmine.createSpy('xhr');
+    eventFactory = mockAjaxRequire.AjaxEvent();
+    xhr = jasmine.createSpy('xhr');
   });
 
   it('create an event', function() {
-    var event = this.eventFactory.event(this.xhr, 'readystatechange');
+    var event = eventFactory.event(xhr, 'readystatechange');
 
     expect(event.type).toBe('readystatechange');
-    expect(event.currentTarget).toBe(this.xhr);
-    expect(event.target).toBe(this.xhr);
+    expect(event.currentTarget).toBe(xhr);
+    expect(event.target).toBe(xhr);
     expect(event.cancelable).toBe(false);
     expect(event.bubbles).toBe(false);
     expect(event.defaultPrevented).toBe(false);
@@ -23,11 +25,11 @@ describe('Event', function() {
   });
 
   it('create a progress event', function() {
-    var event = this.eventFactory.progressEvent(this.xhr, 'loadend');
+    var event = eventFactory.progressEvent(xhr, 'loadend');
 
     expect(event.type).toBe('loadend');
-    expect(event.currentTarget).toBe(this.xhr);
-    expect(event.target).toBe(this.xhr);
+    expect(event.currentTarget).toBe(xhr);
+    expect(event.target).toBe(xhr);
     expect(event.cancelable).toBe(false);
     expect(event.bubbles).toBe(false);
     expect(event.defaultPrevented).toBe(false);

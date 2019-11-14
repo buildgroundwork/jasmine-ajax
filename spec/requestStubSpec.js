@@ -3,8 +3,10 @@
 describe('RequestStub', function() {
   'use strict';
 
+  var RequestStub;
+
   beforeEach(function() {
-    this.RequestStub = mockAjaxRequire.AjaxRequestStub();
+    RequestStub = mockAjaxRequire.AjaxRequestStub();
 
     jasmine.addMatchers({
       toMatchRequest: function() {
@@ -20,31 +22,31 @@ describe('RequestStub', function() {
   });
 
   it('matches just by exact url', function() {
-    var stub = new this.RequestStub('www.example.com/foo');
+    var stub = new RequestStub('www.example.com/foo');
 
     expect(stub).toMatchRequest('www.example.com/foo');
   });
 
   it('does not match if the url differs', function() {
-    var stub = new this.RequestStub('www.example.com/foo');
+    var stub = new RequestStub('www.example.com/foo');
 
     expect(stub).not.toMatchRequest('www.example.com/bar');
   });
 
   it('matches unordered query params', function() {
-    var stub = new this.RequestStub('www.example.com?foo=bar&baz=quux');
+    var stub = new RequestStub('www.example.com?foo=bar&baz=quux');
 
     expect(stub).toMatchRequest('www.example.com?baz=quux&foo=bar');
   });
 
   it('requires all specified query params to be there', function() {
-    var stub = new this.RequestStub('www.example.com?foo=bar&baz=quux');
+    var stub = new RequestStub('www.example.com?foo=bar&baz=quux');
 
     expect(stub).not.toMatchRequest('www.example.com?foo=bar');
   });
 
   it('can match the url with a RegExp', function() {
-    var stub = new this.RequestStub(/ba[rz]/);
+    var stub = new RequestStub(/ba[rz]/);
 
     expect(stub).toMatchRequest('bar');
     expect(stub).toMatchRequest('baz');
@@ -52,7 +54,7 @@ describe('RequestStub', function() {
   });
 
   it('requires the method to match if supplied', function() {
-    var stub = new this.RequestStub('www.example.com/foo', null, 'POST');
+    var stub = new RequestStub('www.example.com/foo', null, 'POST');
 
     expect(stub).not.toMatchRequest('www.example.com/foo');
     expect(stub).not.toMatchRequest('www.example.com/foo', null, 'GET');
@@ -60,14 +62,14 @@ describe('RequestStub', function() {
   });
 
   it('requires the data submitted to match if supplied', function() {
-    var stub = new this.RequestStub('/foo', 'foo=bar&baz=quux');
+    var stub = new RequestStub('/foo', 'foo=bar&baz=quux');
 
     expect(stub).toMatchRequest('/foo', 'baz=quux&foo=bar');
     expect(stub).not.toMatchRequest('/foo', 'foo=bar');
   });
 
   it('can match the data or query params with a RegExp', function() {
-    var stub = new this.RequestStub('/foo', /ba[rz]=quux/);
+    var stub = new RequestStub('/foo', /ba[rz]=quux/);
 
     expect(stub).toMatchRequest('/foo', 'bar=quux');
     expect(stub).toMatchRequest('/foo', 'baz=quux');
@@ -76,7 +78,7 @@ describe('RequestStub', function() {
 
   describe('when returning successfully', function() {
     it('passes response information to the request', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       stub.andReturn({
         status: 300,
         statusText: 'hi there',
@@ -96,7 +98,7 @@ describe('RequestStub', function() {
     });
 
     it('defaults to status 200', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       stub.andReturn({});
       var fakeRequest = { respondWith: jasmine.createSpy('respondWith') };
 
@@ -108,7 +110,7 @@ describe('RequestStub', function() {
     });
 
     it('allows setting a response code of 0', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       stub.andReturn({status: 0});
       var fakeRequest = { respondWith: jasmine.createSpy('respondWith') };
 
@@ -122,7 +124,7 @@ describe('RequestStub', function() {
 
   describe('when erroring', function() {
     it('passes error information to request', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       stub.andError({
         status: 502,
         extra: 'stuff'
@@ -138,7 +140,7 @@ describe('RequestStub', function() {
     });
 
     it('defaults to status 500', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       stub.andError({});
 
       var fakeRequest = { responseError: jasmine.createSpy('responseError') };
@@ -152,7 +154,7 @@ describe('RequestStub', function() {
 
   describe('when timing out', function() {
     it('tells the request to time out', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       stub.andTimeout();
 
       var fakeRequest = { responseTimeout: jasmine.createSpy('responseTimeout') };
@@ -164,7 +166,7 @@ describe('RequestStub', function() {
 
   describe('when calling a function', function() {
     it('invokes the function with the request', function() {
-      var stub = new this.RequestStub('/foo');
+      var stub = new RequestStub('/foo');
       var callback = jasmine.createSpy('callback').and.returnValue({ status: 201 });
       stub.andCallFunction(callback);
 

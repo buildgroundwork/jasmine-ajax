@@ -3,58 +3,60 @@
 describe('EventBus', function() {
   'use strict';
 
+  var event, progressEvent, eventFactory, xhr, bus;
+
   beforeEach(function() {
-    var event = this.event = jasmine.createSpyObj('event', [
+    event = jasmine.createSpyObj('event', [
       'preventDefault',
       'stopPropagation',
       'stopImmediatePropagation'
     ]);
 
-    var progressEvent = this.progressEvent = jasmine.createSpyObj('progressEvent', [
+    progressEvent = jasmine.createSpyObj('progressEvent', [
       'preventDefault',
       'stopPropagation',
       'stopImmediatePropagation'
     ]);
 
-    var eventFactory = this.eventFactory = {
+    eventFactory = {
       event: jasmine.createSpy('event').and.returnValue(event),
       progressEvent: jasmine.createSpy('progressEvent').and.returnValue(progressEvent)
     };
 
-    this.xhr = jasmine.createSpy('xhr');
-    this.bus = mockAjaxRequire.AjaxEventBus(eventFactory)(this.xhr);
+    xhr = jasmine.createSpy('xhr');
+    bus = mockAjaxRequire.AjaxEventBus(eventFactory)(xhr);
   });
 
   it('calls an event listener with event object', function() {
     var callback = jasmine.createSpy('callback');
 
-    this.bus.addEventListener('foo', callback);
-    this.bus.trigger('foo');
+    bus.addEventListener('foo', callback);
+    bus.trigger('foo');
 
-    expect(callback).toHaveBeenCalledWith(this.progressEvent);
-    expect(this.eventFactory.progressEvent).toHaveBeenCalledWith(this.xhr, 'foo');
-    expect(this.eventFactory.event).not.toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledWith(progressEvent);
+    expect(eventFactory.progressEvent).toHaveBeenCalledWith(xhr, 'foo');
+    expect(eventFactory.event).not.toHaveBeenCalled();
   });
 
   it('calls an readystatechange listener with event object', function() {
     var callback = jasmine.createSpy('callback');
 
-    this.bus.addEventListener('readystatechange', callback);
-    this.bus.trigger('readystatechange');
+    bus.addEventListener('readystatechange', callback);
+    bus.trigger('readystatechange');
 
-    expect(callback).toHaveBeenCalledWith(this.event);
-    expect(this.eventFactory.event).toHaveBeenCalledWith(this.xhr, 'readystatechange');
-    expect(this.eventFactory.progressEvent).not.toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledWith(event);
+    expect(eventFactory.event).toHaveBeenCalledWith(xhr, 'readystatechange');
+    expect(eventFactory.progressEvent).not.toHaveBeenCalled();
   });
 
   it('only triggers callbacks for the specified event', function() {
     var fooCallback = jasmine.createSpy('foo'),
         barCallback = jasmine.createSpy('bar');
 
-    this.bus.addEventListener('foo', fooCallback);
-    this.bus.addEventListener('bar', barCallback);
+    bus.addEventListener('foo', fooCallback);
+    bus.addEventListener('bar', barCallback);
 
-    this.bus.trigger('foo');
+    bus.trigger('foo');
 
     expect(fooCallback).toHaveBeenCalled();
     expect(barCallback).not.toHaveBeenCalled();
@@ -64,17 +66,16 @@ describe('EventBus', function() {
     var callback1 = jasmine.createSpy('callback');
     var callback2 = jasmine.createSpy('otherCallback');
 
-    this.bus.addEventListener('foo', callback1);
-    this.bus.addEventListener('foo', callback2);
+    bus.addEventListener('foo', callback1);
+    bus.addEventListener('foo', callback2);
 
-    this.bus.trigger('foo');
+    bus.trigger('foo');
 
     expect(callback1).toHaveBeenCalled();
     expect(callback2).toHaveBeenCalled();
   });
 
   it('works if there are no callbacks for the event', function() {
-    var bus = this.bus;
     expect(function() {
       bus.trigger('notActuallyThere');
     }).not.toThrow();
@@ -83,9 +84,9 @@ describe('EventBus', function() {
   it('does not call listeners that have been removed', function() {
     var callback = jasmine.createSpy('callback');
 
-    this.bus.addEventListener('foo', callback);
-    this.bus.removeEventListener('foo', callback);
-    this.bus.trigger('foo');
+    bus.addEventListener('foo', callback);
+    bus.removeEventListener('foo', callback);
+    bus.trigger('foo');
 
     expect(callback).not.toHaveBeenCalled();
   });
@@ -94,11 +95,11 @@ describe('EventBus', function() {
     var callback1 = jasmine.createSpy('callback');
     var callback2 = jasmine.createSpy('otherCallback');
 
-    this.bus.addEventListener('foo', callback1);
-    this.bus.addEventListener('foo', callback2);
-    this.bus.removeEventListener('foo', callback2);
+    bus.addEventListener('foo', callback1);
+    bus.addEventListener('foo', callback2);
+    bus.removeEventListener('foo', callback2);
 
-    this.bus.trigger('foo');
+    bus.trigger('foo');
 
     expect(callback1).toHaveBeenCalled();
     expect(callback2).not.toHaveBeenCalled();

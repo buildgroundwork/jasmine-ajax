@@ -3,38 +3,41 @@
 describe('FakeRequest', function() {
   'use strict';
 
+  var requestTracker, stubTracker, parserInstance, paramParser, fakeEventBus
+    , eventBusFactory, FakeRequest;
+
   beforeEach(function() {
-    this.requestTracker = { track: jasmine.createSpy('trackRequest') };
-    this.stubTracker = { findStub: function() {} };
-    var parserInstance = this.parserInstance = jasmine.createSpy('parse');
-    this.paramParser = { findParser: function() { return { parse: parserInstance }; } };
-    var eventBus = this.fakeEventBus = {
+    requestTracker = { track: jasmine.createSpy('trackRequest') };
+    stubTracker = { findStub: function() {} };
+    parserInstance = jasmine.createSpy('parse');
+    paramParser = { findParser: function() { return { parse: parserInstance }; } };
+
+    fakeEventBus = {
       addEventListener: jasmine.createSpy('addEventListener'),
       trigger: jasmine.createSpy('trigger'),
       removeEventListener: jasmine.createSpy('removeEventListener')
     };
-    this.eventBusFactory = function() {
-      return eventBus;
-    };
-    this.fakeGlobal = {
+
+    eventBusFactory = function() { return fakeEventBus; };
+    var fakeGlobal = {
       XMLHttpRequest: function() {
         this.extraAttribute = 'my cool attribute';
       },
       DOMParser: window.DOMParser,
       ActiveXObject: window.ActiveXObject
     };
-    this.FakeRequest = mockAjaxRequire.AjaxFakeRequest(this.eventBusFactory)(this.fakeGlobal, this.requestTracker, this.stubTracker, this.paramParser);
+    FakeRequest = mockAjaxRequire.AjaxFakeRequest(eventBusFactory)(fakeGlobal, requestTracker, stubTracker, paramParser);
   });
 
   it('extends from the global XMLHttpRequest', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
 
     expect(request.extraAttribute).toEqual('my cool attribute');
   });
 
   it('skips XMLHttpRequest attributes that IE does not want copied', function() {
     // use real window here so it will correctly go red on IE if it breaks
-    var FakeRequest = mockAjaxRequire.AjaxFakeRequest(this.eventBusFactory)(window, this.requestTracker, this.stubTracker, this.paramParser);
+    var FakeRequest = mockAjaxRequire.AjaxFakeRequest(eventBusFactory)(window, requestTracker, stubTracker, paramParser);
     var request = new FakeRequest();
 
     expect(request.responseBody).toBeUndefined();
@@ -43,20 +46,20 @@ describe('FakeRequest', function() {
   });
 
   it('tracks the request', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
 
-    expect(this.requestTracker.track).toHaveBeenCalledWith(request);
+    expect(requestTracker.track).toHaveBeenCalledWith(request);
   });
 
   it('has default request headers and override mime type', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
 
     expect(request.requestHeaders).toEqual({});
     expect(request.overriddenMimeType).toBeNull();
   });
 
   it('saves request information when opened', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open('METHOD', 'URL', 'ignore_async', 'USERNAME', 'PASSWORD');
 
     expect(request.method).toEqual('METHOD');
@@ -66,7 +69,7 @@ describe('FakeRequest', function() {
   });
 
   it('converts the url to a string', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open('METHOD', undefined);
 
     expect(request.method).toEqual('METHOD');
@@ -74,7 +77,7 @@ describe('FakeRequest', function() {
   });
 
   it('saves an override mime type', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
 
     request.overrideMimeType('application/text; charset: utf-8');
 
@@ -82,9 +85,8 @@ describe('FakeRequest', function() {
   });
 
   describe('when the request is not yet opened', function () {
-
     it('should throw an error', function () {
-      var request = new this.FakeRequest();
+      var request = new FakeRequest();
 
       expect(function () {
         request.setRequestHeader('X-Header-1', 'value1');
@@ -93,11 +95,10 @@ describe('FakeRequest', function() {
   });
 
   describe('when the request is opened', function () {
-
     var request;
 
     beforeEach(function () {
-      request = new this.FakeRequest();
+      request = new FakeRequest();
 
       request.open('METHOD', 'URL');
     });
@@ -139,120 +140,121 @@ describe('FakeRequest', function() {
   });
 
   it('getResponseHeader returns null, if no response has been received', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     expect(request.getResponseHeader('XY')).toBe(null);
   });
 
   it('getAllResponseHeaders returns null, if no response has been received', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     expect(request.getAllResponseHeaders()).toBe(null);
   });
 
   describe('managing readyState', function() {
+    var request;
+
     beforeEach(function() {
-      this.request = new this.FakeRequest();
+      request = new FakeRequest();
     });
 
     it('has a static state UNSENT', function () {
-        expect(this.FakeRequest.UNSENT).toBe(0);
+      expect(FakeRequest.UNSENT).toBe(0);
     });
 
     it('has a static state OPENED', function () {
-        expect(this.FakeRequest.OPENED).toBe(1);
+      expect(FakeRequest.OPENED).toBe(1);
     });
 
     it('has a static state HEADERS_RECEIVED', function () {
-        expect(this.FakeRequest.HEADERS_RECEIVED).toBe(2);
+      expect(FakeRequest.HEADERS_RECEIVED).toBe(2);
     });
 
     it('has a static state LOADING', function () {
-        expect(this.FakeRequest.LOADING).toBe(3);
+      expect(FakeRequest.LOADING).toBe(3);
     });
 
     it('has a static state DONE', function () {
-        expect(this.FakeRequest.DONE).toBe(4);
+      expect(FakeRequest.DONE).toBe(4);
     });
 
     it('has an initial ready state of 0 (unsent)', function() {
-      expect(this.request.readyState).toBe(0);
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalled();
+      expect(request.readyState).toBe(0);
+      expect(fakeEventBus.trigger).not.toHaveBeenCalled();
     });
 
     it('has a ready state of 1 (opened) when opened', function() {
-      this.request.open();
+      request.open();
 
-      expect(this.request.readyState).toBe(1);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(1);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
     });
 
     it('has a ready state of 0 (unsent) when aborted', function() {
-      this.request.open();
-      this.fakeEventBus.trigger.calls.reset();
+      request.open();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.abort();
+      request.abort();
 
-      expect(this.request.readyState).toBe(0);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(0);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
     });
 
     it('has a ready state of 1 (opened) when sent', function() {
-      this.request.open();
-      this.fakeEventBus.trigger.calls.reset();
+      request.open();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.send();
+      request.send();
 
-      expect(this.request.readyState).toBe(1);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('loadstart');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(1);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('loadstart');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('readystatechange');
     });
 
     it('has a ready state of 4 (done) when timed out', function() {
-      this.request.open();
-      this.request.send();
-      this.fakeEventBus.trigger.calls.reset();
+      request.open();
+      request.send();
+      fakeEventBus.trigger.calls.reset();
 
       jasmine.clock().install();
-      this.request.responseTimeout();
+      request.responseTimeout();
       jasmine.clock().uninstall();
 
-      expect(this.request.readyState).toBe(4);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(4);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
     });
 
     it('has a ready state of 4 (done) when network erroring', function() {
-      this.request.open();
-      this.request.send();
-      this.fakeEventBus.trigger.calls.reset();
+      request.open();
+      request.send();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.responseError();
+      request.responseError();
 
-      expect(this.request.readyState).toBe(4);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(4);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
     });
 
     it('has a ready state of 4 (done) when responding', function() {
-      this.request.open();
-      this.request.send();
-      this.fakeEventBus.trigger.calls.reset();
+      request.open();
+      request.send();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.respondWith({});
+      request.respondWith({});
 
-      expect(this.request.readyState).toBe(4);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(4);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
     });
 
     it('has a ready state of 2, then 4 (done) when responding', function() {
-      this.request.open();
-      this.request.send();
-      this.fakeEventBus.trigger.calls.reset();
+      request.open();
+      request.send();
+      fakeEventBus.trigger.calls.reset();
 
-      var request = this.request;
       var events = [];
       var headers = [
         { name: 'X-Header', value: 'foo' }
       ];
 
-      this.fakeEventBus.trigger.and.callFake(function(event) {
+      fakeEventBus.trigger.and.callFake(function(event) {
         if (event === 'readystatechange') {
           events.push({
             readyState: request.readyState,
@@ -263,14 +265,14 @@ describe('FakeRequest', function() {
         }
       });
 
-      this.request.respondWith({
+      request.respondWith({
         status: 200,
         statusText: 'OK',
         responseHeaders: headers
       });
 
-      expect(this.request.readyState).toBe(4);
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(request.readyState).toBe(4);
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
       expect(events.length).toBe(2);
       expect(events).toEqual([
         { readyState: 2, status: 200, statusText: 'OK', responseHeaders: headers },
@@ -279,10 +281,9 @@ describe('FakeRequest', function() {
     });
 
     it('throws an error when timing out a request that has completed', function() {
-      this.request.open();
-      this.request.send();
-      this.request.respondWith({});
-      var request = this.request;
+      request.open();
+      request.send();
+      request.respondWith({});
 
       expect(function() {
         request.responseTimeout();
@@ -290,10 +291,9 @@ describe('FakeRequest', function() {
     });
 
     it('throws an error when responding to a request that has completed', function() {
-      this.request.open();
-      this.request.send();
-      this.request.respondWith({});
-      var request = this.request;
+      request.open();
+      request.send();
+      request.respondWith({});
 
       expect(function() {
         request.respondWith({});
@@ -301,10 +301,9 @@ describe('FakeRequest', function() {
     });
 
     it('throws an error when erroring a request that has completed', function() {
-      this.request.open();
-      this.request.send();
-      this.request.respondWith({});
-      var request = this.request;
+      request.open();
+      request.send();
+      request.respondWith({});
 
       expect(function() {
         request.responseError({});
@@ -313,152 +312,154 @@ describe('FakeRequest', function() {
   });
 
   it('registers on-style callback with the event bus', function() {
-    this.request = new this.FakeRequest();
+    var request = new FakeRequest();
 
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('readystatechange', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('loadstart', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('progress', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('abort', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('error', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('load', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('timeout', jasmine.any(Function));
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('loadend', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('readystatechange', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('loadstart', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('progress', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('abort', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('error', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('load', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('timeout', jasmine.any(Function));
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('loadend', jasmine.any(Function));
 
-    this.request.onreadystatechange = jasmine.createSpy('readystatechange');
-    this.request.onloadstart = jasmine.createSpy('loadstart');
-    this.request.onprogress = jasmine.createSpy('progress');
-    this.request.onabort = jasmine.createSpy('abort');
-    this.request.onerror = jasmine.createSpy('error');
-    this.request.onload = jasmine.createSpy('load');
-    this.request.ontimeout = jasmine.createSpy('timeout');
-    this.request.onloadend = jasmine.createSpy('loadend');
+    request.onreadystatechange = jasmine.createSpy('readystatechange');
+    request.onloadstart = jasmine.createSpy('loadstart');
+    request.onprogress = jasmine.createSpy('progress');
+    request.onabort = jasmine.createSpy('abort');
+    request.onerror = jasmine.createSpy('error');
+    request.onload = jasmine.createSpy('load');
+    request.ontimeout = jasmine.createSpy('timeout');
+    request.onloadend = jasmine.createSpy('loadend');
 
-    var args = this.fakeEventBus.addEventListener.calls.allArgs();
+    var args = fakeEventBus.addEventListener.calls.allArgs();
     for (var i = 0; i < args.length; i++) {
       var eventName = args[i][0],
           busCallback = args[i][1];
 
       busCallback();
-      expect(this.request['on' + eventName]).toHaveBeenCalled();
+      expect(request['on' + eventName]).toHaveBeenCalled();
     }
   });
 
   it('delegates addEventListener to the eventBus', function() {
-    this.request = new this.FakeRequest();
+    var request = new FakeRequest();
 
-    this.request.addEventListener('foo', 'bar');
+    request.addEventListener('foo', 'bar');
 
-    expect(this.fakeEventBus.addEventListener).toHaveBeenCalledWith('foo', 'bar');
+    expect(fakeEventBus.addEventListener).toHaveBeenCalledWith('foo', 'bar');
   });
 
   it('delegates removeEventListener to the eventBus', function() {
-    this.request = new this.FakeRequest();
+    var request = new FakeRequest();
 
-    this.request.removeEventListener('foo', 'bar');
+    request.removeEventListener('foo', 'bar');
 
-    expect(this.fakeEventBus.removeEventListener).toHaveBeenCalledWith('foo', 'bar');
+    expect(fakeEventBus.removeEventListener).toHaveBeenCalledWith('foo', 'bar');
   });
 
   describe('triggering progress events', function() {
+    var request;
+
     beforeEach(function() {
-      this.request = new this.FakeRequest();
+      request = new FakeRequest();
     });
 
     it('should not trigger any events to start', function() {
-      this.request.open();
+      request.open();
 
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
     });
 
     it('should trigger loadstart when sent', function() {
-      this.request.open();
+      request.open();
 
-      this.fakeEventBus.trigger.calls.reset();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.send();
+      request.send();
 
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('loadstart');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('readystatechange');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('progress');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('loadend');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('loadstart');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('readystatechange');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('progress');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('loadend');
     });
 
     it('should trigger abort, progress, loadend when aborted', function() {
-      this.request.open();
-      this.request.send();
+      request.open();
+      request.send();
 
-      this.fakeEventBus.trigger.calls.reset();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.abort();
+      request.abort();
 
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('progress');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('abort');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('progress');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('abort');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
     });
 
     it('should trigger error, progress, loadend when network error', function() {
-      this.request.open();
-      this.request.send();
+      request.open();
+      request.send();
 
-      this.fakeEventBus.trigger.calls.reset();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.responseError();
+      request.responseError();
 
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('progress');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('error');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('progress');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('error');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
     });
 
     it('should trigger timeout, progress, loadend when timing out', function() {
-      this.request.open();
-      this.request.send();
+      request.open();
+      request.send();
 
-      this.fakeEventBus.trigger.calls.reset();
+      fakeEventBus.trigger.calls.reset();
 
       jasmine.clock().install();
-      this.request.responseTimeout();
+      request.responseTimeout();
       jasmine.clock().uninstall();
 
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('progress');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('timeout');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('progress');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('load');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('timeout');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
     });
 
     it('should trigger load, progress, loadend when responding', function() {
-      this.request.open();
-      this.request.send();
+      request.open();
+      request.send();
 
-      this.fakeEventBus.trigger.calls.reset();
+      fakeEventBus.trigger.calls.reset();
 
-      this.request.respondWith({ status: 200 });
+      request.respondWith({ status: 200 });
 
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('progress');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('load');
-      expect(this.fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
-      expect(this.fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('loadstart');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('progress');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('abort');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('error');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('load');
+      expect(fakeEventBus.trigger).not.toHaveBeenCalledWith('timeout');
+      expect(fakeEventBus.trigger).toHaveBeenCalledWith('loadend');
     });
   });
 
@@ -466,7 +467,7 @@ describe('FakeRequest', function() {
     var clock = { tick: jasmine.createSpy('tick') };
     spyOn(jasmine, 'clock').and.returnValue(clock);
 
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -476,13 +477,13 @@ describe('FakeRequest', function() {
   });
 
   it('has an initial status of null', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
 
     expect(request.status).toBeNull();
   });
 
   it('has an aborted status', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
 
     request.abort();
 
@@ -491,7 +492,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a status from the response', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -502,7 +503,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a statusText from the response', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -513,7 +514,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a status from the response when there is an error', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -524,7 +525,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a statusText from the response when there is an error', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -534,9 +535,8 @@ describe('FakeRequest', function() {
     expect(request.statusText).toBe('Internal Server Error');
   });
 
-
   it('saves off any data sent to the server', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send('foo=bar&baz=quux');
 
@@ -544,26 +544,26 @@ describe('FakeRequest', function() {
   });
 
   it('parses data sent to the server', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send('foo=bar&baz=quux');
 
-    this.parserInstance.and.returnValue('parsed');
+    parserInstance.and.returnValue('parsed');
 
     expect(request.data()).toBe('parsed');
   });
 
   it('skips parsing if no data was sent', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
     expect(request.data()).toEqual({});
-    expect(this.parserInstance).not.toHaveBeenCalled();
+    expect(parserInstance).not.toHaveBeenCalled();
   });
 
   it('saves responseText', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -573,7 +573,7 @@ describe('FakeRequest', function() {
   });
 
   it('defaults responseText if none is given', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -583,7 +583,7 @@ describe('FakeRequest', function() {
   });
 
   it('saves responseURL', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -593,7 +593,7 @@ describe('FakeRequest', function() {
   });
 
   it('defaults responseURL if none is given', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -603,7 +603,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves individual response headers', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -618,7 +618,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves individual response headers case-insensitively', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -633,7 +633,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves a combined response header', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -649,11 +649,11 @@ describe('FakeRequest', function() {
   });
 
   it("doesn't pollute the response headers of other XHRs", function() {
-    var request1 = new this.FakeRequest();
+    var request1 = new FakeRequest();
     request1.open();
     request1.send();
 
-    var request2 = new this.FakeRequest();
+    var request2 = new FakeRequest();
     request2.open();
     request2.send();
 
@@ -665,7 +665,7 @@ describe('FakeRequest', function() {
   });
 
   it('retrieves all response headers', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -682,7 +682,7 @@ describe('FakeRequest', function() {
   });
 
   it('sets the content-type header to the specified contentType when no other headers are supplied', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -693,7 +693,7 @@ describe('FakeRequest', function() {
   });
 
   it('sets a default content-type header if no contentType and headers are supplied', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -704,7 +704,7 @@ describe('FakeRequest', function() {
   });
 
   it('has no responseXML by default', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -714,7 +714,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses a text/xml document into responseXML', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -731,7 +731,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses an application/xml document into responseXML', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -748,7 +748,7 @@ describe('FakeRequest', function() {
   });
 
   it('parses a custom blah+xml document into responseXML', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -765,7 +765,7 @@ describe('FakeRequest', function() {
   });
 
   it('stringifies responseJSON into responseText', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -775,7 +775,7 @@ describe('FakeRequest', function() {
   });
 
   it('defaults the response attribute to the responseText', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -785,7 +785,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a text response when the responseType is blank', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -795,7 +795,7 @@ describe('FakeRequest', function() {
   });
 
   it('has a text response when the responseType is text', function() {
-    var request = new this.FakeRequest();
+    var request = new FakeRequest();
     request.open();
     request.send();
 
@@ -806,31 +806,31 @@ describe('FakeRequest', function() {
 
   describe('stream response', function() {
     it('can return a response', function() {
-      var request = new this.FakeRequest();
+      var request = new FakeRequest();
       request.open();
       request.send();
 
       request.startStream();
 
-      expect(request.readyState).toBe(this.FakeRequest.LOADING);
+      expect(request.readyState).toBe(FakeRequest.LOADING);
       expect(request.responseText).toBe('');
     });
 
     it('can finish request', function() {
-      var request = new this.FakeRequest();
+      var request = new FakeRequest();
       request.open();
       request.send();
 
       request.startStream();
       request.completeStream();
 
-      expect(request.readyState).toBe(this.FakeRequest.DONE);
+      expect(request.readyState).toBe(FakeRequest.DONE);
       expect(request.responseText).toBe('');
       expect(request.status).toBe(200);
     });
 
     it('can cancel request', function() {
-      var request = new this.FakeRequest();
+      var request = new FakeRequest();
       request.open();
       request.send();
 
@@ -839,20 +839,20 @@ describe('FakeRequest', function() {
 
       request.cancelStream();
 
-      expect(request.readyState).toBe(this.FakeRequest.DONE);
+      expect(request.readyState).toBe(FakeRequest.DONE);
       expect(request.responseText).toBe('');
       expect(request.status).toBe(0);
     });
 
     it('can send part of data as response', function() {
-      var request = new this.FakeRequest();
+      var request = new FakeRequest();
       request.open();
       request.send();
 
       request.startStream();
       request.streamData('text\n');
 
-      expect(request.readyState).toBe(this.FakeRequest.LOADING);
+      expect(request.readyState).toBe(FakeRequest.LOADING);
       expect(request.responseText).toBe('text\n');
 
       request.streamData('text2\n');
@@ -863,7 +863,7 @@ describe('FakeRequest', function() {
     });
 
     it('thrown an error if finish request and then try to cancel', function() {
-      var request = new this.FakeRequest();
+      var request = new FakeRequest();
       request.open();
       request.send();
 

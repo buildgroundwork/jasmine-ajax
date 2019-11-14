@@ -3,15 +3,16 @@
 describe('ParamParser', function() {
   'use strict';
 
+  var paramParser;
+
   beforeEach(function() {
     var Constructor = mockAjaxRequire.AjaxParamParser();
-    expect(Constructor).toEqual(jasmine.any(Function));
-    this.parser = new Constructor();
+    paramParser = new Constructor();
   });
 
   it('has a default parser', function() {
-    var parser = this.parser.findParser({ contentType: function() {} }),
-        parsed = parser.parse('3+stooges=shemp&3+stooges=larry%20%26%20moe%20%26%20curly&some%3Dthing=else+entirely');
+    var parser = paramParser.findParser({ contentType: function() {} }),
+      parsed = parser.parse('3+stooges=shemp&3+stooges=larry%20%26%20moe%20%26%20curly&some%3Dthing=else+entirely');
 
     expect(parsed).toEqual({
       '3 stooges': ['shemp', 'larry & moe & curly'],
@@ -21,32 +22,32 @@ describe('ParamParser', function() {
 
   it('should detect and parse json', function() {
     var data = {
-          foo: 'bar',
-          baz: ['q', 'u', 'u', 'x'],
-          nested: {
-            object: {
-              containing: 'stuff'
-            }
-          }
-        },
-        parser = this.parser.findParser({ contentType: function() { return 'application/json'; } }),
-        parsed = parser.parse(JSON.stringify(data));
+      foo: 'bar',
+      baz: ['q', 'u', 'u', 'x'],
+      nested: {
+        object: {
+          containing: 'stuff'
+        }
+      }
+    },
+      parser = paramParser.findParser({ contentType: function() { return 'application/json'; } }),
+      parsed = parser.parse(JSON.stringify(data));
 
     expect(parsed).toEqual(data);
   });
 
   it('should parse json with further qualifiers on content-type', function() {
     var data = {
-          foo: 'bar',
-          baz: ['q', 'u', 'u', 'x'],
-          nested: {
-            object: {
-              containing: 'stuff'
-            }
-          }
-        },
-        parser = this.parser.findParser({ contentType: function() { return 'application/json; charset=utf-8'; } }),
-        parsed = parser.parse(JSON.stringify(data));
+      foo: 'bar',
+      baz: ['q', 'u', 'u', 'x'],
+      nested: {
+        object: {
+          containing: 'stuff'
+        }
+      }
+    },
+      parser = paramParser.findParser({ contentType: function() { return 'application/json; charset=utf-8'; } }),
+      parsed = parser.parse(JSON.stringify(data));
 
     expect(parsed).toEqual(data);
   });
@@ -57,10 +58,10 @@ describe('ParamParser', function() {
       parse: jasmine.createSpy('parse').and.returnValue('parsedFormat')
     };
 
-    this.parser.add(custom);
+    paramParser.add(custom);
 
-    var parser = this.parser.findParser({ contentType: function() {} }),
-        parsed = parser.parse('custom_format');
+    var parser = paramParser.findParser({ contentType: function() {} }),
+      parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual('parsedFormat');
     expect(custom.test).toHaveBeenCalled();
@@ -73,10 +74,10 @@ describe('ParamParser', function() {
       parse: jasmine.createSpy('parse').and.returnValue('parsedFormat')
     };
 
-    this.parser.add(custom);
+    paramParser.add(custom);
 
-    var parser = this.parser.findParser({ contentType: function() {} }),
-        parsed = parser.parse('custom_format');
+    var parser = paramParser.findParser({ contentType: function() {} }),
+      parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual({ custom_format: [ 'undefined' ] });
     expect(custom.test).toHaveBeenCalled();
@@ -89,19 +90,19 @@ describe('ParamParser', function() {
       parse: jasmine.createSpy('parse').and.returnValue('parsedFormat')
     };
 
-    this.parser.add(custom);
+    paramParser.add(custom);
 
-    var parser = this.parser.findParser({ contentType: function() {} }),
-        parsed = parser.parse('custom_format');
+    var parser = paramParser.findParser({ contentType: function() {} }),
+      parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual('parsedFormat');
 
     custom.test.calls.reset();
     custom.parse.calls.reset();
 
-    this.parser.reset();
+    paramParser.reset();
 
-    parser = this.parser.findParser({ contentType: function() {} });
+    parser = paramParser.findParser({ contentType: function() {} });
     parsed = parser.parse('custom_format');
 
     expect(parsed).toEqual({ custom_format: [ 'undefined' ] });
