@@ -34,7 +34,7 @@ mockAjaxRequire.AjaxParamParser = function() {
     };
 
     this.findParser = function(xhr) {
-        for(var i in paramParsers) {
+        for (var i = 0; i < paramParsers.length; ++i) {
           var parser = paramParsers[i];
           if (parser.test(xhr)) {
             return parser;
@@ -44,7 +44,7 @@ mockAjaxRequire.AjaxParamParser = function() {
 
     this.reset = function() {
       paramParsers = [];
-      for(var i in defaults) {
+      for (var i = 0; i < defaults.length; ++i) {
         paramParsers.push(defaults[i]);
       }
     };

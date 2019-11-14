@@ -2,7 +2,7 @@ mockAjaxRequire.AjaxFakeRequest = function(eventBusFactory) {
   function extend(destination, source, propertiesToSkip) {
     propertiesToSkip = propertiesToSkip || [];
     for (var property in source) {
-      if (!arrayContains(propertiesToSkip, property)) {
+      if (source.hasOwnProperty(property) && !arrayContains(propertiesToSkip, property)) {
         destination[property] = source[property];
       }
     }
