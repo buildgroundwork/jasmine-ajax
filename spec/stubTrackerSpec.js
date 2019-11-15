@@ -6,8 +6,7 @@ describe('StubTracker', function() {
   let tracker;
 
   beforeEach(function() {
-    const Constructor = mockAjaxRequire.AjaxStubTracker();
-    tracker = new Constructor();
+    tracker = new mockAjaxRequire.StubTracker();
   });
 
   it('finds nothing if no stubs are added', function() {

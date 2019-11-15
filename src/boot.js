@@ -49,9 +49,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // <% files.forEach(function(filename) { %>
 //  include "<%= filename %>";<% }); %>
 
-    const MockAjax = mockAjaxRequire.ajax(mockAjaxRequire);
-    jasmine.Ajax = new MockAjax(global);
-
-    return MockAjax;
+  return new mockAjaxRequire.MockAjax(global);
 }));
 

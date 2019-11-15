@@ -1,55 +1,59 @@
 (function() {
-  mockAjaxRequire.MockAjax = function($ajax) {
-    function MockAjax(global) {
-      const requestTracker = new $ajax.RequestTracker(),
-        stubTracker = new $ajax.StubTracker(),
-        paramParser = new $ajax.ParamParser(),
-        realAjaxFunction = global.XMLHttpRequest,
-        mockAjaxFunction = $ajax.fakeRequest(global, requestTracker, stubTracker, paramParser);
+  mockAjaxRequire.MockAjax = function(global) {
+    const requestTracker = new mockAjaxRequire.RequestTracker(),
+      stubTracker = new mockAjaxRequire.StubTracker(),
+      paramParser = new mockAjaxRequire.ParamParser(),
+      activeXObjFactory = function() { return new global.ActiveXObject('Microsoft.XMLDOM'); },
+      RealXMLHttpRequest = global.XMLHttpRequest,
+      realXMLHttpRequest = new RealXMLHttpRequest();
+    let FakeXMLHttpRequest;
 
-      this.install = function() {
-        if (global.XMLHttpRequest !== realAjaxFunction) {
-          throw new Error("Jasmine Ajax was unable to install over a custom XMLHttpRequest. Is Jasmine Ajax already installed?");
-        }
+    const self = this;
 
-        global.XMLHttpRequest = mockAjaxFunction;
-      };
+    Object.defineProperty(self, 'stubs', { get: function() { return stubTracker; } });
+    Object.defineProperty(self, 'requests', { get: function() { return requestTracker; } });
 
-      this.uninstall = function() {
-        if (global.XMLHttpRequest !== mockAjaxFunction) {
-          throw new Error("MockAjax not installed.");
-        }
-        global.XMLHttpRequest = realAjaxFunction;
+    self.install = function(jasmine) {
+      FakeXMLHttpRequest = mockAjaxRequire.buildFakeXMLHttpRequest(jasmine, realXMLHttpRequest, requestTracker, stubTracker, paramParser, global.DOMParser, activeXObjFactory);
+      if (global.XMLHttpRequest !== RealXMLHttpRequest) {
+        throw new Error("Jasmine Ajax was unable to install over a custom XMLHttpRequest. Is Jasmine Ajax already installed?");
+      }
 
-        this.stubs.reset();
-        this.requests.reset();
-        paramParser.reset();
-      };
+      global.XMLHttpRequest = FakeXMLHttpRequest;
+    };
 
-      this.stubRequest = function(url, data, method) {
-        const stub = new $ajax.RequestStub(url, data, method);
-        stubTracker.addStub(stub);
-        return stub;
-      };
+    self.uninstall = function() {
+      if (global.XMLHttpRequest !== FakeXMLHttpRequest) {
+        throw new Error("MockAjax not installed.");
+      }
+      global.XMLHttpRequest = RealXMLHttpRequest;
+      FakeXMLHttpRequest = void 0;
 
-      this.withMock = function(closure) {
-        this.install();
-        try {
-          closure();
-        } finally {
-          this.uninstall();
-        }
-      };
+      stubTracker.reset();
+      requestTracker.reset();
+      paramParser.reset();
+    };
 
-      this.addCustomParamParser = function(parser) {
-        paramParser.add(parser);
-      };
+    self.stubRequest = function(url, data, method) {
+      const stub = new mockAjaxRequire.RequestStub(url, data, method);
+      stubTracker.addStub(stub);
+      return stub;
+    };
 
-      this.requests = requestTracker;
-      this.stubs = stubTracker;
-    }
+    self.withMock = function(jasmine, closure) {
+      self.install(jasmine);
+      try {
+        closure();
+      } finally {
+        self.uninstall();
+      }
+    };
 
-    return MockAjax;
+    self.addCustomParamParser = function(parser) {
+      paramParser.add(parser);
+    };
+
+    return self;
   };
 })();
 

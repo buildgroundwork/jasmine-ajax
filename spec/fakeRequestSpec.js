@@ -3,8 +3,8 @@
 describe('FakeRequest', function() {
   'use strict';
 
-  let requestTracker, stubTracker, parserInstance, paramParser, fakeEventBus
-    , eventBusFactory, FakeRequest;
+  let requestTracker, stubTracker, parserInstance, paramParser, fakeEventBus, FakeRequest
+    , activeXObjectFactory = function() { return new window.ActiveXObject('Microsoft.XMLDOM'); };
 
   beforeEach(function() {
     requestTracker = { track: jasmine.createSpy('trackRequest') };
@@ -18,15 +18,10 @@ describe('FakeRequest', function() {
       removeEventListener: jasmine.createSpy('removeEventListener')
     };
 
-    eventBusFactory = function() { return fakeEventBus; };
-    const fakeGlobal = {
-      XMLHttpRequest: function() {
-        this.extraAttribute = 'my cool attribute';
-      },
-      DOMParser: window.DOMParser,
-      ActiveXObject: window.ActiveXObject
-    };
-    FakeRequest = mockAjaxRequire.AjaxFakeRequest(eventBusFactory)(fakeGlobal, requestTracker, stubTracker, paramParser);
+    spyOn(mockAjaxRequire, 'EventBus').and.returnValue(fakeEventBus);
+    const xMLHttpRequest = { extraAttribute: 'my cool attribute' };
+
+    FakeRequest = mockAjaxRequire.buildFakeXMLHttpRequest(jasmine, xMLHttpRequest, requestTracker, stubTracker, paramParser, window.DOMParser, activeXObjectFactory);
   });
 
   it('extends from the global XMLHttpRequest', function() {
@@ -37,12 +32,12 @@ describe('FakeRequest', function() {
 
   it('skips XMLHttpRequest attributes that IE does not want copied', function() {
     // use real window here so it will correctly go red on IE if it breaks
-    const FakeRequest = mockAjaxRequire.AjaxFakeRequest(eventBusFactory)(window, requestTracker, stubTracker, paramParser);
+    const realRequest = new window.XMLHttpRequest();
+    const FakeRequest = mockAjaxRequire.buildFakeXMLHttpRequest(jasmine, realRequest, requestTracker, stubTracker, paramParser, window.DOMParser, activeXObjectFactory);
     const request = new FakeRequest();
 
     expect(request.responseBody).toBeUndefined();
     expect(request.responseXML).toBeUndefined();
-    expect(request.statusText).toBeUndefined();
   });
 
   it('tracks the request', function() {
@@ -250,9 +245,7 @@ describe('FakeRequest', function() {
       fakeEventBus.trigger.calls.reset();
 
       const events = [];
-      const headers = [
-        { name: 'X-Header', value: 'foo' }
-      ];
+      const headers = [{ name: 'X-Header', value: 'foo' }];
 
       fakeEventBus.trigger.and.callFake(function(event) {
         if (event === 'readystatechange') {
@@ -260,7 +253,7 @@ describe('FakeRequest', function() {
             readyState: request.readyState,
             status: request.status,
             statusText: request.statusText,
-            responseHeaders: request.responseHeaders
+            allResponseHeaders: request.getAllResponseHeaders()
           });
         }
       });
@@ -274,10 +267,16 @@ describe('FakeRequest', function() {
       expect(request.readyState).toBe(4);
       expect(fakeEventBus.trigger).toHaveBeenCalledWith('readystatechange');
       expect(events.length).toBe(2);
-      expect(events).toEqual([
-        { readyState: 2, status: 200, statusText: 'OK', responseHeaders: headers },
-        { readyState: 4, status: 200, statusText: 'OK', responseHeaders: headers }
-      ]);
+
+      expect(events[0].readyState).toEqual(2);
+      expect(events[0].status).toEqual(200);
+      expect(events[0].statusText).toEqual('OK');
+      expect(events[0].allResponseHeaders).toEqual('X-Header: foo\r\n');
+
+      expect(events[1].readyState).toEqual(4);
+      expect(events[1].status).toEqual(200);
+      expect(events[1].statusText).toEqual('OK');
+      expect(events[1].allResponseHeaders).toEqual('X-Header: foo\r\n');
     });
 
     it('throws an error when timing out a request that has completed', function() {
@@ -476,10 +475,10 @@ describe('FakeRequest', function() {
     expect(clock.tick).toHaveBeenCalledWith(30000);
   });
 
-  it('has an initial status of null', function() {
+  it('has an initial status of 0', function() {
     const request = new FakeRequest();
 
-    expect(request.status).toBeNull();
+    expect(request.status).toEqual(0);
   });
 
   it('has an aborted status', function() {
@@ -678,7 +677,7 @@ describe('FakeRequest', function() {
       ]
     });
 
-    expect(request.getAllResponseHeaders()).toBe("X-Header-1: foo\r\nX-Header-2: bar\r\nX-Header-1: baz\r\n");
+    expect(request.getAllResponseHeaders()).toBe("X-Header-1: foo, baz\r\nX-Header-2: bar\r\n");
   });
 
   it('sets the content-type header to the specified contentType when no other headers are supplied', function() {

@@ -6,8 +6,7 @@ describe('ParamParser', function() {
   let paramParser;
 
   beforeEach(function() {
-    const Constructor = mockAjaxRequire.AjaxParamParser();
-    paramParser = new Constructor();
+    paramParser = new mockAjaxRequire.ParamParser();
   });
 
   it('has a default parser', function() {

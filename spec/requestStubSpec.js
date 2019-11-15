@@ -3,11 +3,9 @@
 describe('RequestStub', function() {
   'use strict';
 
-  let RequestStub;
+  const RequestStub = mockAjaxRequire.RequestStub;
 
   beforeEach(function() {
-    RequestStub = mockAjaxRequire.AjaxRequestStub();
-
     jasmine.addMatchers({
       toMatchRequest: function() {
         return {

@@ -1,4 +1,3 @@
-/* global sharedAjaxResponseBehaviorForZepto_Failure, sharedAjaxResponseBehaviorForZepto_Success */
 /* global mockAjaxRequire, jasmine, describe, it, beforeEach, afterEach, expect, spyOn */
 
 describe("Jasmine Mock Ajax (for toplevel)", function() {
@@ -17,8 +16,8 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
       DOMParser: window.DOMParser,
       ActiveXObject: window.ActiveXObject
     };
-    mockAjax = new window.MockAjax(fakeGlobal);
-    mockAjax.install();
+    mockAjax = new mockAjaxRequire.MockAjax(fakeGlobal);
+    mockAjax.install(jasmine);
 
     success = jasmine.createSpy("onSuccess");
     error = jasmine.createSpy("onFailure");
@@ -329,10 +328,7 @@ describe("Jasmine Mock Ajax (for toplevel)", function() {
       });
 
       it("getAllResponseHeaders should return all values", function () {
-        expect(response.getAllResponseHeaders()).toBe([
-          "X-Header: header value 1",
-          "X-Header: header value 2"
-        ].join("\r\n") + "\r\n");
+        expect(response.getAllResponseHeaders()).toEqual("X-Header: header value 1, header value 2\r\n");
       });
     });
 
@@ -528,6 +524,7 @@ function sharedAjaxResponseBehaviorForZepto_Failure(context) {
 
   describe("the failure response", function () {
     let xhr;
+
     beforeEach(function() {
       xhr = context.responseCallback.calls.mostRecent().args[0];
     });

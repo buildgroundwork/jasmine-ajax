@@ -1,389 +1,385 @@
 (function() {
-  mockAjaxRequire.AjaxFakeRequest = function(eventBusFactory) {
-    function extend(destination, source, propertiesToSkip) {
-      propertiesToSkip = propertiesToSkip || [];
-      for (let property in source) {
-        if (source.hasOwnProperty(property) && !arrayContains(propertiesToSkip, property)) {
-          destination[property] = source[property];
-        }
-      }
-      return destination;
-    }
+  mockAjaxRequire.buildFakeXMLHttpRequest = function(jasmine, realXMLHttpRequest, requestTracker, stubTracker, paramParser, DomParser, activeXObjFactory) {
+    const STATUS_CODES = { UNSENT: 0, OPENED: 1, HEADERS_RECEIVED: 2, LOADING: 3, DONE: 4 };
 
-    function arrayContains(arr, item) {
-      for (let i = 0; i < arr.length; i++) {
-        if (arr[i] === item) {
-          return true;
-        }
-      }
-      return false;
-    }
+    const FakeXMLHttpRequest = function() {
+      let status = STATUS_CODES.UNSENT
+        , statusText = ''
+        , requestHeaders = {}
+        , responseHeaders
+        , overriddenMimeType = null
+        , method, url, params, username, password
+        , responseText, responseType, responseURL, responseXML;
 
-    function wrapProgressEvent(xhr, eventName) {
-      return function() {
-        if (xhr[eventName]) {
-          xhr[eventName].apply(xhr, arguments);
+      const self = this;
+      const eventBus = new mockAjaxRequire.EventBus(self);
+
+      const internal = (function() {
+        const _self = {};
+
+        let readyState = STATUS_CODES.UNSENT;
+        Object.defineProperty(self, 'readyState', { configurable: true, get: function() { return readyState; } });
+        Object.defineProperty(_self, 'readyState', {
+          set: function(newState) {
+            if (readyState !== newState) {
+              readyState = newState;
+              eventBus.trigger('readystatechange');
+            }
+          }
+        });
+
+        let response;
+        Object.defineProperty(self, 'response', { configurable: true, get: function() { return response; } });
+        Object.defineProperty(_self, 'response', {
+          set: function(newResponse) {
+            if ('response' in newResponse) {
+              response = newResponse.response;
+            } else {
+              response = responseValue();
+            }
+          }
+        });
+
+        return _self;
+      })();
+
+      Object.defineProperty(self, 'requestHeaders', { get: function() { return combineHeaders(requestHeaders); } });
+      Object.defineProperty(self, 'overriddenMimeType', { get: function() { return overriddenMimeType; } });
+      Object.defineProperty(self, 'status', { configurable: true, get: function() { return status; } });
+      Object.defineProperty(self, 'statusText', { get: function() { return statusText; } });
+      Object.defineProperty(self, 'responseText', { get: function() { return responseText; } });
+      Object.defineProperty(self, 'responseXML', { get: function() { return responseXML; } });
+      Object.defineProperty(self, 'responseURL', { get: function() { return responseURL; } });
+
+      requestTracker.track(self);
+      initializeEvents();
+      defineOriginalRequestMethods();
+
+      self.addEventListener = eventBus.addEventListener;
+      self.removeEventListener = eventBus.removeEventListener;
+
+      self.open = function(method, url, _, username, password) {
+        self.method = method;
+        self.url = '' + url;
+        self.username = username;
+        self.password = password;
+
+        requestHeaders = {};
+        internal.readyState = STATUS_CODES.OPENED;
+      };
+
+      self.setRequestHeader = function(name, value) {
+        if (self.readyState === STATUS_CODES.UNSENT) {
+          throw new Error('DOMException: Failed to execute "setRequestHeader" on "XMLHttpRequest": The object\'s state must be OPENED.');
+        }
+
+        setHeader(requestHeaders, name, value);
+      };
+
+      self.overrideMimeType = function(mime) {
+        overriddenMimeType = mime;
+      };
+
+      self.abort = function() {
+        status = STATUS_CODES.UNSENT;
+        statusText = "abort";
+
+        internal.readyState = STATUS_CODES.UNSENT;
+        eventBus.trigger('progress');
+        eventBus.trigger('abort');
+        eventBus.trigger('loadend');
+      };
+
+      self.send = function(params) {
+        self.params = params;
+        eventBus.trigger('loadstart');
+
+        const stub = stubTracker.findStub(self.url, params, self.method);
+        stub && stub.handleRequest(self);
+      };
+
+      self.contentType = function() {
+        return findHeader('content-type', requestHeaders);
+      };
+
+      self.data = function() {
+        if (self.params) {
+          return paramParser.findParser(self).parse(self.params);
+        } else {
+          return {};
         }
       };
-    }
 
-    function initializeEvents(xhr) {
-      xhr.eventBus.addEventListener('readystatechange', wrapProgressEvent(xhr, 'onreadystatechange'));
-      xhr.eventBus.addEventListener('loadstart', wrapProgressEvent(xhr, 'onloadstart'));
-      xhr.eventBus.addEventListener('load', wrapProgressEvent(xhr, 'onload'));
-      xhr.eventBus.addEventListener('loadend', wrapProgressEvent(xhr, 'onloadend'));
-      xhr.eventBus.addEventListener('progress', wrapProgressEvent(xhr, 'onprogress'));
-      xhr.eventBus.addEventListener('error', wrapProgressEvent(xhr, 'onerror'));
-      xhr.eventBus.addEventListener('abort', wrapProgressEvent(xhr, 'onabort'));
-      xhr.eventBus.addEventListener('timeout', wrapProgressEvent(xhr, 'ontimeout'));
-    }
+      self.getResponseHeader = function(name) {
+        if (!responseHeaders) { return null; }
+        return findHeader(name, responseHeaders);
+      };
 
-    function unconvertibleResponseTypeMessage(type) {
-      const msg = [
-        "Can't build XHR.response for XHR.responseType of '",
-        type,
-        "'.",
-        "XHR.response must be explicitly stubbed"
-      ];
-      return msg.join(' ');
-    }
+      self.getAllResponseHeaders = function() {
+        if (!responseHeaders) { return null; }
 
-    function fakeRequest(global, requestTracker, stubTracker, paramParser) {
-      function FakeXMLHttpRequest() {
-        requestTracker.track(this);
-        this.eventBus = eventBusFactory(this);
-        initializeEvents(this);
-        this.requestHeaders = {};
-        this.overriddenMimeType = null;
+        const combined = combineHeaders(responseHeaders)
+          , results = [];
+        for (let key in combined) {
+          if (combined.hasOwnProperty(key)) {
+            results.push(key + ': ' + combined[key]);
+          }
+        }
+        return results.join('\r\n') + '\r\n';
+      };
+
+      self.respondWith = function(response) {
+        if (self.readyState === STATUS_CODES.DONE) {
+          throw new Error("FakeXMLHttpRequest already completed");
+        }
+
+        startResponse(response);
+        processXmlResponse(response.responseText);
+        processJsonResponse(response);
+
+        internal.response = response;
+        finishResponse('load');
+      };
+
+      self.responseTimeout = function() {
+        if (self.readyState === STATUS_CODES.DONE) {
+          throw new Error("FakeXMLHttpRequest already completed");
+        }
+
+        jasmine.clock().tick(30000);
+        finishResponse('timeout');
+      };
+
+      self.responseError = function(response) {
+        response = response || {};
+
+        if (self.readyState === STATUS_CODES.DONE) {
+          throw new Error("FakeXMLHttpRequest already completed");
+        }
+        status = response.status;
+        statusText = response.statusText || "";
+
+        finishResponse('error');
+      };
+
+      self.startStream = function(options) {
+        if (self.readyState >= STATUS_CODES.LOADING) {
+          throw new Error("FakeXMLHttpRequest already loading or finished");
+        }
+
+        options = options || {};
+        const response = {
+          status: 200
+          , responseHeaders: options.responseHeaders
+          , contentType: options.contentType
+          , responseType: options.responseType
+          , responseUrl: options.responseUrl
+        };
+
+        startResponse(response);
+
+        internal.readyState = STATUS_CODES.LOADING;
+      };
+
+      self.streamData = function(data) {
+        if (self.readyState !== STATUS_CODES.LOADING) {
+          throw new Error("FakeXMLHttpRequest is not loading yet");
+        }
+
+        responseText += data;
+
+        processXmlResponse(responseText);
+        internal.response = { response: responseValue() };
+
+        eventBus.trigger('progress');
+      };
+
+      self.completeStream = function(status) {
+        if (self.readyState !== STATUS_CODES.LOADING) {
+          throw new Error("FakeXMLHttpRequest is not loading");
+        }
+
+        finishResponse();
+      };
+
+      self.cancelStream = function () {
+        if (self.readyState !== STATUS_CODES.LOADING) {
+          throw new Error("FakeXMLHttpRequest is not loading");
+        }
+
+        status = STATUS_CODES.UNSENT;
+        statusText = '';
+
+        finishResponse();
+      };
+
+      return self;
+
+      function initializeEvents() {
+        eventBus.addEventListener('readystatechange', bindEvent('onreadystatechange'));
+        eventBus.addEventListener('loadstart', bindEvent('onloadstart'));
+        eventBus.addEventListener('load', bindEvent('onload'));
+        eventBus.addEventListener('loadend', bindEvent('onloadend'));
+        eventBus.addEventListener('progress', bindEvent('onprogress'));
+        eventBus.addEventListener('error', bindEvent('onerror'));
+        eventBus.addEventListener('abort', bindEvent('onabort'));
+        eventBus.addEventListener('timeout', bindEvent('ontimeout'));
+      }
+
+      function bindEvent(eventName) {
+        return function() {
+          self[eventName] && self[eventName].apply(self, arguments);
+        };
+      }
+
+      function defineOriginalRequestMethods() {
+        const IE_PROPERTIES_THAT_CANNOT_BE_COPIED = ['responseBody', 'responseText', 'responseXML', 'status', 'statusText', 'responseTimeout', 'responseURL'];
+        extend(self, realXMLHttpRequest, IE_PROPERTIES_THAT_CANNOT_BE_COPIED);
+      }
+
+      function combineHeaders(headers) {
+        const combined = {};
+        for (let key in headers) {
+          if (headers.hasOwnProperty(key)) {
+            combined[key] = headers[key].join(', ');
+          }
+        }
+
+        return combined;
+      }
+
+      function setHeader(headers, name, value) {
+        headers[name] = headers[name] || [];
+        headers[name].push(value);
       }
 
       function findHeader(name, headers) {
         name = name.toLowerCase();
-        for (let header in headers) {
-          if (header.toLowerCase() === name) {
-            return headers[header];
+        let combinedHeaders = combineHeaders(headers);
+        for (let key in combinedHeaders) {
+          if (key.toLowerCase() === name) {
+            return combinedHeaders[key];
           }
         }
+
+        return null;
       }
 
-      function normalizeHeaders(rawHeaders, contentType) {
-        let headers = [];
+      function startResponse(response) {
+        status = response.status;
+        statusText = response.statusText || '';
 
-        if (rawHeaders) {
-          if (rawHeaders instanceof Array) {
-            headers = rawHeaders;
-          } else {
-            for (let headerName in rawHeaders) {
-              if (rawHeaders.hasOwnProperty(headerName)) {
-                headers.push({ name: headerName, value: rawHeaders[headerName] });
-              }
-            }
-          }
-        } else {
-          headers.push({ name: "Content-Type", value: contentType || "application/json" });
+        responseHeaders = normalizeHeaders(response.responseHeaders, response.contentType);
+        internal.readyState = STATUS_CODES.HEADERS_RECEIVED;
+
+        responseText = response.responseText || '';
+        responseType = response.responseType || '';
+        responseURL = response.responseURL || null;
+      }
+
+      function processXmlResponse(responseText) {
+        responseXML = null;
+
+        const xmlParsables = ['text/xml', 'application/xml']
+          , contentType = self.getResponseHeader('content-type') || '';
+
+        if (xmlParsables.includes(contentType.toLowerCase())) {
+          responseXML = parseXml(responseText, contentType);
+        } else if (contentType.match(/\+xml$/)) {
+          responseXML = parseXml(responseText, 'text/xml');
         }
-
-        return headers;
+        if (responseXML) {
+          responseType = 'document';
+        }
       }
 
       function parseXml(xmlText, contentType) {
-        if (global.DOMParser) {
-          return (new global.DOMParser()).parseFromString(xmlText, 'text/xml');
+        if (DOMParser) {
+          return (new DOMParser()).parseFromString(xmlText, contentType);
         } else {
-          const xml = new global.ActiveXObject("Microsoft.XMLDOM");
+          const xml = activeXObjFactory();
           xml.async = "false";
           xml.loadXML(xmlText);
           return xml;
         }
       }
 
-      const xmlParsables = ['text/xml', 'application/xml'];
-
-      function getResponseXml(responseText, contentType) {
-        if (arrayContains(xmlParsables, contentType.toLowerCase())) {
-          return parseXml(responseText, contentType);
-        } else if (contentType.match(/\+xml$/)) {
-          return parseXml(responseText, 'text/xml');
+      function processJsonResponse(response) {
+        if (response.responseJSON) {
+          responseText = JSON.stringify(response.responseJSON);
         }
-        return null;
       }
 
-  extend(FakeXMLHttpRequest, {
-          UNSENT: 0,
-          OPENED: 1,
-          HEADERS_RECEIVED: 2,
-          LOADING: 3,
-          DONE: 4
-      });
+      function finishResponse(event) {
+        internal.readyState = STATUS_CODES.DONE;
+        eventBus.trigger('progress');
+        if (event) { eventBus.trigger(event); }
+        eventBus.trigger('loadend');
+      }
 
-      const iePropertiesThatCannotBeCopied = ['responseBody', 'responseText', 'responseXML', 'status', 'statusText', 'responseTimeout', 'responseURL'];
-      extend(FakeXMLHttpRequest.prototype, new global.XMLHttpRequest(), iePropertiesThatCannotBeCopied);
-      extend(FakeXMLHttpRequest.prototype, {
-        open: function() {
-          this.method = arguments[0];
-          this.url = arguments[1] + '';
-          this.username = arguments[3];
-          this.password = arguments[4];
-          this.readyState = FakeXMLHttpRequest.OPENED;
-          this.requestHeaders = {};
-          this.eventBus.trigger('readystatechange');
-        },
+      function responseValue() {
+        switch(responseType) {
+          case null:
+          case "":
+          case "text":
+            return responseText;
+          case "json":
+            return JSON.parse(responseText);
+          case "arraybuffer":
+          case "blob":
+            throw "Can't build XHR.response for XHR.responseType of '" + responseType +
+              "'. XHR.response must be explicitly stubbed";
+          case "document":
+            return responseXML;
+        }
+      }
 
-        setRequestHeader: function(header, value) {
-          if (this.readyState === 0) {
-            throw new Error('DOMException: Failed to execute "setRequestHeader" on "XMLHttpRequest": The object\'s state must be OPENED.');
-          }
+      function normalizeHeaders(rawHeaders, contentType) {
+        let headers = {};
 
-          if(this.requestHeaders.hasOwnProperty(header)) {
-            this.requestHeaders[header] = [this.requestHeaders[header], value].join(', ');
+        if (rawHeaders) {
+          if (rawHeaders instanceof Array) {
+            for (let i = 0; i < rawHeaders.length; ++i) {
+              setHeader(headers, rawHeaders[i].name, rawHeaders[i].value);
+            }
           } else {
-            this.requestHeaders[header] = value;
-          }
-        },
-
-        overrideMimeType: function(mime) {
-          this.overriddenMimeType = mime;
-        },
-
-        abort: function() {
-          this.readyState = FakeXMLHttpRequest.UNSENT;
-          this.status = 0;
-          this.statusText = "abort";
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-          this.eventBus.trigger('abort');
-          this.eventBus.trigger('loadend');
-        },
-
-        readyState: FakeXMLHttpRequest.UNSENT,
-
-        onloadstart: null,
-        onprogress: null,
-        onabort: null,
-        onerror: null,
-        onload: null,
-        ontimeout: null,
-        onloadend: null,
-        onreadystatechange: null,
-
-        addEventListener: function() {
-          this.eventBus.addEventListener.apply(this.eventBus, arguments);
-        },
-
-        removeEventListener: function(event, callback) {
-          this.eventBus.removeEventListener.apply(this.eventBus, arguments);
-        },
-
-        status: null,
-
-        send: function(data) {
-          this.params = data;
-          this.eventBus.trigger('loadstart');
-
-          const stub = stubTracker.findStub(this.url, data, this.method);
-          if (stub) {
-            stub.handleRequest(this);
-          }
-        },
-
-        contentType: function() {
-          return findHeader('content-type', this.requestHeaders);
-        },
-
-        data: function() {
-          if (!this.params) {
-            return {};
-          }
-
-          return paramParser.findParser(this).parse(this.params);
-        },
-
-        getResponseHeader: function(name) {
-          let resultHeader = null;
-          if (!this.responseHeaders) { return resultHeader; }
-
-          name = name.toLowerCase();
-          for(let i = 0; i < this.responseHeaders.length; i++) {
-            const header = this.responseHeaders[i];
-            if (name === header.name.toLowerCase()) {
-              if (resultHeader) {
-                resultHeader = [resultHeader, header.value].join(', ');
-              } else {
-                resultHeader = header.value;
+            for (let name in rawHeaders) {
+              if (rawHeaders.hasOwnProperty(name)) {
+                setHeader(headers, name, rawHeaders[name]);
               }
             }
           }
-          return resultHeader;
-        },
-
-        getAllResponseHeaders: function() {
-          if (!this.responseHeaders) { return null; }
-
-          const responseHeaders = [];
-          for (let i = 0; i < this.responseHeaders.length; i++) {
-            responseHeaders.push(this.responseHeaders[i].name + ': ' +
-              this.responseHeaders[i].value);
-          }
-          return responseHeaders.join('\r\n') + '\r\n';
-        },
-
-        responseText: null,
-        response: null,
-        responseType: null,
-        responseURL: null,
-
-        responseValue: function() {
-          switch(this.responseType) {
-            case null:
-            case "":
-            case "text":
-              return this.readyState >= FakeXMLHttpRequest.LOADING ? this.responseText : "";
-            case "json":
-              return JSON.parse(this.responseText);
-            case "arraybuffer":
-              throw unconvertibleResponseTypeMessage('arraybuffer');
-            case "blob":
-              throw unconvertibleResponseTypeMessage('blob');
-            case "document":
-              return this.responseXML;
-          }
-        },
-
-
-        respondWith: function(response) {
-          if (this.readyState === FakeXMLHttpRequest.DONE) {
-            throw new Error("FakeXMLHttpRequest already completed");
-          }
-
-          this.status = response.status;
-          this.statusText = response.statusText || "";
-          this.responseHeaders = normalizeHeaders(response.responseHeaders, response.contentType);
-          this.readyState = FakeXMLHttpRequest.HEADERS_RECEIVED;
-          this.eventBus.trigger('readystatechange');
-
-          this.responseText = response.responseText || "";
-          this.responseType = response.responseType || "";
-          this.responseURL = response.responseURL || null;
-          this.readyState = FakeXMLHttpRequest.DONE;
-          this.responseXML = getResponseXml(response.responseText, this.getResponseHeader('content-type') || '');
-          if (this.responseXML) {
-            this.responseType = 'document';
-          }
-          if (response.responseJSON) {
-            this.responseText = JSON.stringify(response.responseJSON);
-          }
-
-          if ('response' in response) {
-            this.response = response.response;
-          } else {
-            this.response = this.responseValue();
-          }
-
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-          this.eventBus.trigger('load');
-          this.eventBus.trigger('loadend');
-        },
-
-        responseTimeout: function() {
-          if (this.readyState === FakeXMLHttpRequest.DONE) {
-            throw new Error("FakeXMLHttpRequest already completed");
-          }
-          this.readyState = FakeXMLHttpRequest.DONE;
-          jasmine.clock().tick(30000);
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-          this.eventBus.trigger('timeout');
-          this.eventBus.trigger('loadend');
-        },
-
-        responseError: function(response) {
-          if (!response) {
-            response = {};
-          }
-          if (this.readyState === FakeXMLHttpRequest.DONE) {
-            throw new Error("FakeXMLHttpRequest already completed");
-          }
-          this.status = response.status;
-          this.statusText = response.statusText || "";
-          this.readyState = FakeXMLHttpRequest.DONE;
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-          this.eventBus.trigger('error');
-          this.eventBus.trigger('loadend');
-        },
-
-        startStream: function(options) {
-          if (!options) {
-            options = {};
-          }
-
-          if (this.readyState >= FakeXMLHttpRequest.LOADING) {
-            throw new Error("FakeXMLHttpRequest already loading or finished");
-          }
-
-          this.status = 200;
-          this.responseText = "";
-          this.statusText = "";
-
-          this.responseHeaders = normalizeHeaders(options.responseHeaders, options.contentType);
-          this.readyState = FakeXMLHttpRequest.HEADERS_RECEIVED;
-          this.eventBus.trigger('readystatechange');
-
-          this.responseType = options.responseType || "";
-          this.responseURL = options.responseURL || null;
-          this.readyState = FakeXMLHttpRequest.LOADING;
-          this.eventBus.trigger('readystatechange');
-        },
-
-        streamData: function(data) {
-          if (this.readyState !== FakeXMLHttpRequest.LOADING) {
-            throw new Error("FakeXMLHttpRequest is not loading yet");
-          }
-
-          this.responseText += data;
-          this.responseXML = getResponseXml(this.responseText, this.getResponseHeader('content-type') || '');
-          if (this.responseXML) {
-            this.responseType = 'document';
-          }
-
-          this.response = this.responseValue();
-
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-        },
-
-        cancelStream: function () {
-          if (this.readyState === FakeXMLHttpRequest.DONE) {
-            throw new Error("FakeXMLHttpRequest already completed");
-          }
-
-          this.status = 0;
-          this.statusText = "";
-          this.readyState = FakeXMLHttpRequest.DONE;
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-          this.eventBus.trigger('loadend');
-        },
-
-        completeStream: function(status) {
-          if (this.readyState === FakeXMLHttpRequest.DONE) {
-            throw new Error("FakeXMLHttpRequest already completed");
-          }
-
-          this.status = status || 200;
-          this.statusText = "";
-          this.readyState = FakeXMLHttpRequest.DONE;
-          this.eventBus.trigger('readystatechange');
-          this.eventBus.trigger('progress');
-          this.eventBus.trigger('loadend');
+        } else {
+          setHeader(headers, 'Content-Type', contentType || 'application/json');
         }
-      });
 
-      return FakeXMLHttpRequest;
-    }
+        return headers;
+      }
+    };
 
-    return fakeRequest;
+    extend(FakeXMLHttpRequest, STATUS_CODES);
+    extend(FakeXMLHttpRequest.prototype, {
+      onloadstart: null,
+      onprogress: null,
+      onabort: null,
+      onerror: null,
+      onload: null,
+      ontimeout: null,
+      onloadend: null,
+      onreadystatechange: null
+    });
+
+    return FakeXMLHttpRequest;
   };
+
+  function extend(destination, source, propertiesToSkip) {
+    propertiesToSkip = propertiesToSkip || [];
+    for (let property in source) {
+      if (source.hasOwnProperty(property) && !propertiesToSkip.includes(property)) {
+        destination[property] = source[property];
+      }
+    }
+    return destination;
+  }
 })();
 

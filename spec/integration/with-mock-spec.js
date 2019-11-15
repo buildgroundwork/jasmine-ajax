@@ -14,9 +14,9 @@ describe("withMock", function() {
     const xmlHttpRequest = jasmine.createSpyObj('XMLHttpRequest', ['open', 'send']),
       xmlHttpRequestCtor = spyOn(window, 'XMLHttpRequest').and.returnValue(xmlHttpRequest),
       fakeGlobal = {XMLHttpRequest: xmlHttpRequestCtor},
-      mockAjax = new window.MockAjax(fakeGlobal);
+      mockAjax = new mockAjaxRequire.MockAjax(fakeGlobal);
 
-    mockAjax.withMock(function() {
+    mockAjax.withMock(jasmine, function() {
       sendRequest(fakeGlobal);
       expect(xmlHttpRequest.open).not.toHaveBeenCalled();
     });
@@ -29,10 +29,10 @@ describe("withMock", function() {
     const xmlHttpRequest = jasmine.createSpyObj('XMLHttpRequest', ['open', 'send']),
       xmlHttpRequestCtor = spyOn(window, 'XMLHttpRequest').and.returnValue(xmlHttpRequest),
       fakeGlobal = {XMLHttpRequest: xmlHttpRequestCtor},
-      mockAjax = new window.MockAjax(fakeGlobal);
+      mockAjax = new mockAjaxRequire.MockAjax(fakeGlobal);
 
     expect(function() {
-      mockAjax.withMock(function() {
+      mockAjax.withMock(jasmine, function() {
         throw "error";
       });
     }).toThrow("error");

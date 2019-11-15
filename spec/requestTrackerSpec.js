@@ -6,8 +6,7 @@ describe('RequestTracker', function() {
   let tracker;
 
   beforeEach(function() {
-    const Constructor = mockAjaxRequire.AjaxRequestTracker();
-    tracker = new Constructor();
+    tracker = new mockAjaxRequire.RequestTracker();
   });
 
   it('tracks the number of times ajax requests are made', function() {

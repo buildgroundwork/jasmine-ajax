@@ -3,15 +3,14 @@
 describe('Event', function() {
   'use strict';
 
-  let eventFactory, xhr;
+  let xhr;
 
   beforeEach(function() {
-    eventFactory = mockAjaxRequire.AjaxEvent();
     xhr = jasmine.createSpy('xhr');
   });
 
   it('create an event', function() {
-    const event = eventFactory.event(xhr, 'readystatechange');
+    const event = mockAjaxRequire.buildEvent(xhr, 'readystatechange');
 
     expect(event.type).toBe('readystatechange');
     expect(event.currentTarget).toBe(xhr);
@@ -25,7 +24,7 @@ describe('Event', function() {
   });
 
   it('create a progress event', function() {
-    const event = eventFactory.progressEvent(xhr, 'loadend');
+    const event = mockAjaxRequire.buildProgressEvent(xhr, 'loadend');
 
     expect(event.type).toBe('loadend');
     expect(event.currentTarget).toBe(xhr);

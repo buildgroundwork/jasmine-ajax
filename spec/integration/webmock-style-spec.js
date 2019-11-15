@@ -33,8 +33,8 @@ describe("Webmock style mocking", function() {
     errorSpy = jasmine.createSpy('error');
     timeoutSpy = jasmine.createSpy('timeout');
     fakeGlobal = {XMLHttpRequest: jasmine.createSpy('realXMLHttpRequest')};
-    mockAjax = new window.MockAjax(fakeGlobal);
-    mockAjax.install();
+    mockAjax = new mockAjaxRequire.MockAjax(fakeGlobal);
+    mockAjax.install(jasmine);
 
     mockAjax.stubRequest("http://example.com/someApi").andReturn({responseText: "hi!"});
     mockAjax.stubRequest("http://example.com/someErrorApi").andError();

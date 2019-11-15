@@ -1,9 +1,9 @@
-/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect */
+/* global mockAjaxRequire, jasmine, describe, it, beforeEach, expect, spyOn */
 
 describe('EventBus', function() {
   'use strict';
 
-  let event, progressEvent, eventFactory, xhr, bus;
+  let event, progressEvent, xhr, bus;
 
   beforeEach(function() {
     event = jasmine.createSpyObj('event', [
@@ -18,13 +18,11 @@ describe('EventBus', function() {
       'stopImmediatePropagation'
     ]);
 
-    eventFactory = {
-      event: jasmine.createSpy('event').and.returnValue(event),
-      progressEvent: jasmine.createSpy('progressEvent').and.returnValue(progressEvent)
-    };
+    spyOn(mockAjaxRequire, 'buildEvent').and.returnValue(event);
+    spyOn(mockAjaxRequire, 'buildProgressEvent').and.returnValue(progressEvent);
 
     xhr = jasmine.createSpy('xhr');
-    bus = mockAjaxRequire.AjaxEventBus(eventFactory)(xhr);
+    bus = new mockAjaxRequire.EventBus(xhr);
   });
 
   it('calls an event listener with event object', function() {
@@ -34,8 +32,8 @@ describe('EventBus', function() {
     bus.trigger('foo');
 
     expect(callback).toHaveBeenCalledWith(progressEvent);
-    expect(eventFactory.progressEvent).toHaveBeenCalledWith(xhr, 'foo');
-    expect(eventFactory.event).not.toHaveBeenCalled();
+    expect(mockAjaxRequire.buildProgressEvent).toHaveBeenCalledWith(xhr, 'foo');
+    expect(mockAjaxRequire.buildEvent).not.toHaveBeenCalled();
   });
 
   it('calls an readystatechange listener with event object', function() {
@@ -45,8 +43,8 @@ describe('EventBus', function() {
     bus.trigger('readystatechange');
 
     expect(callback).toHaveBeenCalledWith(event);
-    expect(eventFactory.event).toHaveBeenCalledWith(xhr, 'readystatechange');
-    expect(eventFactory.progressEvent).not.toHaveBeenCalled();
+    expect(mockAjaxRequire.buildEvent).toHaveBeenCalledWith(xhr, 'readystatechange');
+    expect(mockAjaxRequire.buildProgressEvent).not.toHaveBeenCalled();
   });
 
   it('only triggers callbacks for the specified event', function() {
