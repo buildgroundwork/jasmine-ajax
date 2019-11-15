@@ -1,40 +1,32 @@
 (function() {
   mockAjaxRequire.EventBus = function(source) {
-    this.eventList = {};
-    this.source = source;
-  };
+    const eventList = {};
 
-  mockAjaxRequire.EventBus.prototype.addEventListener = function(event, callback) {
-    ensureEvent(this.eventList, event).push(callback);
-  };
+    const self = this;
 
-  mockAjaxRequire.EventBus.prototype.removeEventListener = function(event, callback) {
-    const index = findIndex(this.eventList[event], callback);
+    self.addEventListener = function(event, callback) {
+      ensureEvent(eventList, event).push(callback);
+    };
 
-    if (index >= 0) {
-      this.eventList[event].splice(index, 1);
-    }
-  };
+    self.removeEventListener = function(event, callback) {
+      const index = findIndex(eventList[event], callback);
 
-  mockAjaxRequire.EventBus.prototype.trigger = function(event) {
-    let evt;
-
-    // Event 'readystatechange' is should be a simple event.
-    // Others are progress event.
-    // https://xhr.spec.whatwg.org/#events
-    if (event === 'readystatechange') {
-      evt = mockAjaxRequire.buildEvent(this.source, event);
-    } else {
-      evt = mockAjaxRequire.buildProgressEvent(this.source, event);
-    }
-
-    const eventListeners = this.eventList[event];
-
-    if (eventListeners) {
-      for (let i = 0; i < eventListeners.length; i++) {
-        eventListeners[i].call(this.source, evt);
+      if (index >= 0) {
+        eventList[event].splice(index, 1);
       }
-    }
+    };
+
+    self.trigger = function(name) {
+      const Constructor = isProgressEvent(name) ? mockAjaxRequire.ProgressEvent : mockAjaxRequire.Event
+        , event = new Constructor(source, name);
+
+      const eventListeners = eventList[name];
+      if (eventListeners) {
+        eventListeners.forEach(function(listener) { listener.call(source, event); });
+      }
+    };
+
+    return self;
   };
 
   function ensureEvent(eventList, name) {
@@ -47,13 +39,20 @@
       return list.indexOf(thing);
     }
 
-    for(let i = 0; i < list.length; i++) {
+    for (let i = 0; i < list.length; ++i) {
       if (thing === list[i]) {
         return i;
       }
     }
 
     return -1;
+  }
+
+  function isProgressEvent(name) {
+    // Event 'readystatechange' is a simple event.
+    // Others are progress events.
+    // https://xhr.spec.whatwg.org/#events
+    return name !== 'readystatechange';
   }
 })();
 

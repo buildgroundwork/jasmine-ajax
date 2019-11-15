@@ -27,11 +27,13 @@
   mockAjaxRequire.ParamParser = function() {
     let paramParsers;
 
-    this.add = function(parser) {
+    const self = this;
+
+    self.add = function(parser) {
       paramParsers.unshift(parser);
     };
 
-    this.findParser = function(xhr) {
+    self.findParser = function(xhr) {
       for (let i = 0; i < paramParsers.length; ++i) {
         const parser = paramParsers[i];
         if (parser.test(xhr)) {
@@ -40,14 +42,14 @@
       }
     };
 
-    this.reset = function() {
+    self.reset = function() {
       paramParsers = [];
       for (let i = 0; i < DEFAULTS.length; ++i) {
         paramParsers.push(DEFAULTS[i]);
       }
     };
 
-    this.reset();
+    self.reset();
   };
 })();
 

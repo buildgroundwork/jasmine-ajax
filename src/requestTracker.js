@@ -2,47 +2,59 @@
   mockAjaxRequire.RequestTracker = function() {
     let requests = [];
 
-    this.track = function(request) {
+    const self = this;
+
+    self.track = function(request) {
       requests.push(request);
     };
 
-    this.first = function() {
+    self.first = function() {
       return requests[0];
     };
 
-    this.count = function() {
+    self.count = function() {
       return requests.length;
     };
 
-    this.reset = function() {
+    self.reset = function() {
       requests = [];
     };
 
-    this.mostRecent = function() {
+    self.mostRecent = function() {
       return requests[requests.length - 1];
     };
 
-    this.at = function(index) {
+    self.at = function(index) {
       return requests[index];
     };
 
-    this.filter = function(url_to_match) {
-      const matching_requests = [];
+    self.filter = function(predicate) {
+      const matchingRequests = [];
 
-      for (let i = 0; i < requests.length; i++) {
-        if (url_to_match instanceof RegExp && url_to_match.test(requests[i].url)) {
-          matching_requests.push(requests[i]);
-        } else if (url_to_match instanceof Function && url_to_match(requests[i])) {
-          matching_requests.push(requests[i]);
-        } else {
-          if (requests[i].url === url_to_match) {
-            matching_requests.push(requests[i]);
-          }
+      for (let i = 0; i < requests.length; ++i) {
+        if (matchRegexp(requests[i], predicate) ||
+          matchFn(requests[i], predicate) ||
+          matchUrl(requests[i], predicate)) {
+          matchingRequests.push(requests[i]);
         }
       }
 
-      return matching_requests;
+      return matchingRequests;
     };
+
+    return self;
+
+    function matchRegexp(request, predicate) {
+      return predicate instanceof RegExp && predicate.test(request.url);
+    }
+
+    function matchFn(request, predicate) {
+      return predicate instanceof Function && predicate(request);
+    }
+
+    function matchUrl(request, predicate) {
+      return request.url === predicate;
+    }
   };
 })();
 

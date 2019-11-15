@@ -18,8 +18,8 @@ describe('EventBus', function() {
       'stopImmediatePropagation'
     ]);
 
-    spyOn(mockAjaxRequire, 'buildEvent').and.returnValue(event);
-    spyOn(mockAjaxRequire, 'buildProgressEvent').and.returnValue(progressEvent);
+    spyOn(mockAjaxRequire, 'Event').and.returnValue(event);
+    spyOn(mockAjaxRequire, 'ProgressEvent').and.returnValue(progressEvent);
 
     xhr = jasmine.createSpy('xhr');
     bus = new mockAjaxRequire.EventBus(xhr);
@@ -32,8 +32,8 @@ describe('EventBus', function() {
     bus.trigger('foo');
 
     expect(callback).toHaveBeenCalledWith(progressEvent);
-    expect(mockAjaxRequire.buildProgressEvent).toHaveBeenCalledWith(xhr, 'foo');
-    expect(mockAjaxRequire.buildEvent).not.toHaveBeenCalled();
+    expect(mockAjaxRequire.ProgressEvent).toHaveBeenCalledWith(xhr, 'foo');
+    expect(mockAjaxRequire.Event).not.toHaveBeenCalled();
   });
 
   it('calls an readystatechange listener with event object', function() {
@@ -43,8 +43,8 @@ describe('EventBus', function() {
     bus.trigger('readystatechange');
 
     expect(callback).toHaveBeenCalledWith(event);
-    expect(mockAjaxRequire.buildEvent).toHaveBeenCalledWith(xhr, 'readystatechange');
-    expect(mockAjaxRequire.buildProgressEvent).not.toHaveBeenCalled();
+    expect(mockAjaxRequire.Event).toHaveBeenCalledWith(xhr, 'readystatechange');
+    expect(mockAjaxRequire.ProgressEvent).not.toHaveBeenCalled();
   });
 
   it('only triggers callbacks for the specified event', function() {

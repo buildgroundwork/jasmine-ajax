@@ -10,7 +10,7 @@ describe('Event', function() {
   });
 
   it('create an event', function() {
-    const event = mockAjaxRequire.buildEvent(xhr, 'readystatechange');
+    const event = new mockAjaxRequire.Event(xhr, 'readystatechange');
 
     expect(event.type).toBe('readystatechange');
     expect(event.currentTarget).toBe(xhr);
@@ -24,7 +24,7 @@ describe('Event', function() {
   });
 
   it('create a progress event', function() {
-    const event = mockAjaxRequire.buildProgressEvent(xhr, 'loadend');
+    const event = new mockAjaxRequire.ProgressEvent(xhr, 'loadend');
 
     expect(event.type).toBe('loadend');
     expect(event.currentTarget).toBe(xhr);
