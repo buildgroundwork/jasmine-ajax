@@ -3,6 +3,10 @@
 
 If you are using the updated version of this library, there is some additional documentation located at [jasmine.github.io](https://jasmine.github.io/tutorials/mocking_ajax) that is up-to-date.
 
+** Note: Breaking changes in version 5.0: **
+- No longer adds the `Ajax` attribute to the `jasmine` object.
+- `MockAjax.install` now requires the `jasmine` object.
+
 jasmine-ajax - Faking Ajax responses in your Jasmine suite.
 ============
 jasmine-ajax is a library that lets you define a set of fake responses for Ajax
@@ -22,11 +26,23 @@ jasmine-ajax is currently compatible with any library that uses XMLHttpRequest.
 
 Installing
 ----------
-#### NPM ####
+#### NPM
 Install `jasmine-ajax` from NPM via  `npm install --save-dev jasmine-ajax`; you can then `require('jasmine-ajax')` inside your test-suite and access it via the `jasmine` global.
 
-#### Browser ####
+#### Browser
+##### Old Style
 Download [mock-ajax.js](https://raw.github.com/jasmine/jasmine-ajax/master/lib/mock-ajax.js) and add it to your project. If you are using the jasmine gem, be sure the location you put mock-ajax.js is included in your `helpers` path in jasmine.yml. If you are using Jasmine standalone, make sure you add it to your spec runner.
+
+##### yarn/webpacker
+```bash
+# Main project is currently incompatible with Webpack
+% yarn install --dev https://github.com/buildgrounwork/jasmine-ajax.git
+```
+
+In your project:
+```javascript
+const MockAjax = require('jasmine-ajax');
+```
 
 Setup
 -----
@@ -42,7 +58,7 @@ Example
 -------
 Let's use a simple Foursquare venue search app to show each of these steps.
 
-### 1. Defining Test Responses ###
+### 1. Defining Test Responses
 After signing up for an API key and playing around with curl a bit you should have an idea of what API resources you are interested in and what sample responses look like. Once you do, you can define simple JavaScripts objects that will be used to build XMLHttpRequest objects later.
 
 For example, if you have a response that looks like this:
@@ -113,24 +129,36 @@ var TestResponses = {
 
 A good place to define this is in `spec/javascripts/helpers/test_responses`. You can also define failure responses, for whatever status codes the API you are working with supports.
 
-### 2. Installing the mock ###
-Install the mock using `jasmine.Ajax.install()`:
+### 2. Installing the mock
+
+** Note: This library no longer adds itself automatically as an attribute of the global `jasmine` object. **
 
 ```javascript
+// If using Webpack or similar:
+const MockAjax = require('jasmine-ajax');
+// Otherwise, if included directly the object will be avaiable on the global object:
+window.MockAjax 
+
 beforeEach(function() {
-  jasmine.Ajax.install();
+  MockAjax.install(jasmine);
+
+  // Optionally, for transitioning from previous incarnations:
+  jasmine.Ajax = MockAjax;
   ...
 });
 
 // don't forget to uninstall as well...
 afterEach(function() {
   jasmine.Ajax.uninstall();
+
+  // Optionally...
+  delete jasmine.Ajax;
   ...
 });
 ```
 After this, all Ajax requests will be captured by jasmine-ajax. If you want to do things like load fixtures, do it before you install the mock (see below).
 
-### 3. Trigger ajax request code ###
+### 3. Trigger ajax request code
 Before you can specify that a request uses your test response, you must have a handle to the request itself.  This means that the request is made first by the code under test and then you will set your test response (see next step).
 
 ```javascript
@@ -144,7 +172,7 @@ request = jasmine.Ajax.requests.mostRecent();
 
 The onreadystatechange event isn't fired to complete the ajax request until you set the response in the next step.
 
-### 4. Set responses ###
+### 4. Set responses
 Now that you've defined some test responses and installed the mock, you need to tell jasmine-ajax which response to use for a given spec. If you want to use your success response for a set of related success specs, you might use:
 
 ```javascript
@@ -157,7 +185,7 @@ describe("on success", function() {
 
 Now for all the specs in this example group, whenever an Ajax response is sent, it will use the `TestResponses.search.success` object defined in your test responses to build the XMLHttpRequest object.
 
-### 5. Inspect Ajax requests ###
+### 5. Inspect Ajax requests
 Putting it all together, you can install the mock, pass some spies as callbacks to your search object, and make expectations about the expected behavior.
 
 ```javascript

@@ -4,7 +4,6 @@
   "version": "5.0.0",
   "main": "lib/mock-ajax.js",
   "license": "MIT",
-  "url": "https://github.com/jasmine/jasmine-ajax",
   "contributors": [
     "Adam Milligan <adam@buildgroundwork.com>",
     "Gregg Van Hove <gregg@slackersoft.net>",
@@ -13,7 +12,7 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/jasmine/jasmine-ajax"
+    "url": "https://github.com/buildgroundwork/jasmine-ajax"
   },
   "dependencies": {},
   "devDependencies": {
