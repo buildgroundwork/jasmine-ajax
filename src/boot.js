@@ -38,7 +38,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   'use strict';
 
   if (typeof module !== 'undefined' && module.exports && typeof exports !== 'undefined') {
-    const { jasmineAjaxGlobal, mockAjaxRequire } = require('./global');
+    const { jasmineAjaxGlobal, mockAjaxRequire } = require('src/global');
     module.exports = factory(jasmineAjaxGlobal, mockAjaxRequire);
   } else {
     jasmineAjaxGlobal.MockAjax = factory(jasmineAjaxGlobal, jasmineAjaxGlobal.mockAjaxRequire);
