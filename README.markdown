@@ -3,7 +3,7 @@
 
 If you are using the updated version of this library, there is some additional documentation located at [jasmine.github.io](https://jasmine.github.io/tutorials/mocking_ajax) that is up-to-date.
 
-** Note: Breaking changes in version 5.0: **
+**Note: Breaking changes in version 5.0:**
 - No longer adds the `Ajax` attribute to the `jasmine` object.
 - `MockAjax.install` now requires the `jasmine` object.
 
@@ -131,7 +131,7 @@ A good place to define this is in `spec/javascripts/helpers/test_responses`. You
 
 ### 2. Installing the mock
 
-** Note: This library no longer adds itself automatically as an attribute of the global `jasmine` object. **
+**Note: This library no longer adds itself automatically as an attribute of the global `jasmine` object.**
 
 ```javascript
 // If using Webpack or similar:
